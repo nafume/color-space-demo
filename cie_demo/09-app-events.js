@@ -1,7 +1,47 @@
 // 9. 이벤트 연결 및 애니메이션 루프
 // --------------------------------------------------------
-let activeTab = document.querySelector('.tab.active')?.dataset.target || 'xyy';
-let isStartCoverVisible = document.body.classList.contains('app-start-screen');
+const tabButtons = Array.from(document.querySelectorAll('.tab'));
+const defaultTabTarget = tabButtons[0]?.dataset.target || 'rgb-compare';
+
+function normalizeTabTarget(target) {
+    return tabButtons.some(tab => tab.dataset.target === target) ? target : defaultTabTarget;
+}
+
+function getTabIndexByTarget(target) {
+    return Math.max(0, tabButtons.findIndex(tab => tab.dataset.target === target));
+}
+
+function getTabTargetFromUrl() {
+    const rawIndex = new URLSearchParams(window.location.search).get('index');
+    if (rawIndex === null) return null;
+    const tabIndex = Number(rawIndex);
+    if (Number.isInteger(tabIndex) && tabIndex >= 0 && tabIndex < tabButtons.length) {
+        return tabButtons[tabIndex].dataset.target;
+    }
+    return tabButtons.find(tab => tab.dataset.target === rawIndex)?.dataset.target || null;
+}
+
+function syncActiveTabButton(target) {
+    tabButtons.forEach(tab => tab.classList.toggle('active', tab.dataset.target === target));
+}
+
+function syncTabIndexUrl(target, replace = false) {
+    if (!window.history || !window.history.pushState) return;
+    if (!replace && getTabTargetFromUrl() === target) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('index', String(getTabIndexByTarget(target)));
+    const state = { tabIndex: getTabIndexByTarget(target), tab: target };
+    if (replace) window.history.replaceState(state, '', url);
+    else window.history.pushState(state, '', url);
+}
+
+const initialTabFromUrl = getTabTargetFromUrl();
+let activeTab = normalizeTabTarget(initialTabFromUrl || document.querySelector('.tab.active')?.dataset.target);
+let isStartCoverVisible = document.body.classList.contains('app-start-screen') && !initialTabFromUrl;
+if (initialTabFromUrl) {
+    document.body.classList.remove('app-start-screen', 'app-start-lifting');
+}
+syncActiveTabButton(activeTab);
 let startLiftPointerY = null;
 let startLiftPointerMoved = false;
 
@@ -70,7 +110,8 @@ function renderStartChromaticityMotif() {
         .join('');
 }
 
-function setActiveTab(target) {
+function setActiveTab(target, options = {}) {
+    target = normalizeTabTarget(target);
     const previousTab = activeTab;
     saveCameraPoseForTab(previousTab);
     if (previousTab !== target) {
@@ -78,6 +119,8 @@ function setActiveTab(target) {
         clearOrbitControlMomentum();
     }
     activeTab = target;
+    syncActiveTabButton(target);
+    if (options.updateUrl !== false) syncTabIndexUrl(target, !!options.replaceUrl);
 
     const show = (id, visible) => {
         const el = document.getElementById(id);
@@ -356,10 +399,22 @@ document.querySelectorAll('.tab').forEach(tab => {
             enterFromStartCover();
             return;
         }
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        e.target.classList.add('active');
-        setActiveTab(e.target.dataset.target);
+        setActiveTab(e.currentTarget.dataset.target);
     });
+});
+
+window.addEventListener('popstate', () => {
+    const targetFromUrl = getTabTargetFromUrl();
+    if (!targetFromUrl) {
+        document.body.classList.add('app-start-screen');
+        isStartCoverVisible = true;
+        showStartCover();
+        syncActiveTabButton(activeTab);
+        return;
+    }
+    document.body.classList.remove('app-start-screen', 'app-start-lifting');
+    isStartCoverVisible = false;
+    setActiveTab(targetFromUrl, { updateUrl: false });
 });
 
 const startMain = document.getElementById('start-main');
@@ -398,7 +453,7 @@ renderStartChromaticityMotif();
 if (isStartCoverVisible) {
     showStartCover();
 } else {
-    setActiveTab(activeTab);
+    setActiveTab(activeTab, { replaceUrl: !!initialTabFromUrl });
 }
 
 // Color Matching controls
