@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIE 1931 XYZ & xyY sRGB 색역 3D 통합 뷰어 (라벨/눈금 추가)</title>
+    <link rel="stylesheet" href="cie_demo/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+</head>
+
+<body class="app-start-screen">
+
+    <button id="toggle-menu-btn" title="메뉴 숨기기" aria-label="메뉴 숨기기">
+        <span id="toggle-menu-text">메뉴 숨기기</span>
+        <svg class="icon-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+
+    <div class="tabs">
+        <button class="tab active" data-target="rgb-compare">RGB Compare</button>
+        <button class="tab" data-target="matching">Color Matching</button>
+        <button class="tab" data-target="xyz">CIE XYZ</button>
+        <button class="tab" data-target="xyy">CIE xyY</button>
+        <button class="tab" data-target="additive-subtractive">RGB / CMY Mix</button>
+        <button class="tab" data-target="transfer">Transfer characteristic</button>
+        <button class="tab" data-target="camera-log">Camera Log</button>
+        <button class="tab" data-target="lab">CIELAB</button>
+        <button class="tab" data-target="ictcp">ICtCp</button>
+    </div>
+
+    <button id="theme-toggle-btn" type="button" title="Day / Night 테마 전환" aria-label="Day / Night 테마 전환">
+        <span class="theme-toggle-track" aria-hidden="true">
+            <span class="theme-toggle-thumb"></span>
+            <span class="theme-icon theme-sun-label">
+                <svg viewBox="0 0 24 24" role="img">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"></path>
+                </svg>
+            </span>
+            <span class="theme-icon theme-moon-label">
+                <svg viewBox="0 0 24 24" role="img">
+                    <path d="M20.2 14.5A7.6 7.6 0 0 1 9.5 3.8 8.7 8.7 0 1 0 20.2 14.5Z"></path>
+                </svg>
+            </span>
+        </span>
+    </button>
+
+    <div id="ui-panel-container">
+        <div id="ui-panel">
+            <!-- RGB Color Space Compare 컨트롤 -->
+            <div id="controls-rgb-compare">
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">같은 RGB 코드값</span>
+                        <span class="matching-value" id="rgb-compare-code-value">255, 0, 0</span>
+                    </div>
+                    <div class="matching-hint">발표자료와 같은 CSS/Web 표준 색공간 목록으로 비교합니다.</div>
+                </div>
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">R</span>
+                        <span class="matching-value" id="rgb-compare-r-value">255</span>
+                    </div>
+                    <input type="range" id="rgb-compare-r" min="0" max="255" step="1" value="255">
+                </div>
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">G</span>
+                        <span class="matching-value" id="rgb-compare-g-value">0</span>
+                    </div>
+                    <input type="range" id="rgb-compare-g" min="0" max="255" step="1" value="0">
+                </div>
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">B</span>
+                        <span class="matching-value" id="rgb-compare-b-value">0</span>
+                    </div>
+                    <input type="range" id="rgb-compare-b" min="0" max="255" step="1" value="0">
+                </div>
+                <div class="control-group">
+                    <div class="matching-section-title">비교할 컬러스페이스</div>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="srgb" checked> sRGB</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="srgb-linear"> sRGB Linear</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="display-p3" checked> Display P3</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="display-p3-linear"> Display P3 Linear</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="a98-rgb"> Adobe RGB (1998)</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="prophoto-rgb"> ProPhoto RGB</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="rec2020"> Rec.2020</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="rec2100-pq"> Rec.2100 PQ</label>
+                    <label><input type="checkbox" class="rgb-compare-space-toggle" value="rec2100-hlg"> Rec.2100 HLG</label>
+                </div>
+            </div>
+
+            <!-- Transfer characteristic 컨트롤 -->
+            <div id="controls-transfer">
+                <div class="control-group">
+                    <label><b>그래프 표시</b></label>
+                    <label><input type="checkbox" id="toggle-transfer-eotf" checked> EOTF / Decode (code → light)</label>
+                    <label><input type="checkbox" id="toggle-transfer-oetf" checked> OETF / Encode (light → code)</label>
+                    <div class="matching-row">
+                        <span class="matching-label">축 모드</span>
+                        <select id="transfer-axis-mode">
+                            <option value="input-output" selected>X=input, Y=output</option>
+                            <option value="light-code">X=Light, Y=Code</option>
+                            <option value="light-code-nits">X=Light(nits), Y=Code</option>
+                        </select>
+                    </div>
+                    <div class="matching-row">
+                        <span class="matching-label">Display peak</span>
+                        <input type="number" id="transfer-peak-nits" min="100" max="10000" step="100" value="100">
+                    </div>
+                    <input type="range" id="transfer-peak-nits-range" min="100" max="10000" step="100" value="100">
+                    <div class="matching-hint">실선은 display EOTF/decode, 점선은 OETF/encode입니다. SDR 표준의 실선은 BT.1886 표시 EOTF 기준이고, HLG는 상대 HDR 신호 기반으로 정규화 표시합니다.</div>
+                </div>
+                <div class="control-group">
+                    <label><b>비교할 Transfer characteristic</b></label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="linear"> Linear</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="srgb"> sRGB / Display P3</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="adobe-rgb"> Adobe RGB (γ 563/256)</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="prophoto"> ProPhoto RGB (γ 1.8)</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="rec601"> Rec.601</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="rec709"> Rec.709</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="rec2020"> Rec.2020</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="pq"> Rec.2100 PQ / ST 2084</label>
+                    <label><input type="checkbox" class="transfer-standard-toggle" value="hlg"> Rec.2100 HLG</label>
+                </div>
+            </div>
+
+            <!-- Camera Log 컨트롤 -->
+            <div id="controls-camera-log">
+                <div class="control-group">
+                    <label><b>그래프 표시</b></label>
+                    <label><input type="radio" name="camera-log-mode" class="camera-log-mode-toggle" value="encode" checked> Encode: scene stops → code value</label>
+                    <label><input type="radio" name="camera-log-mode" class="camera-log-mode-toggle" value="decode"> Decode: code value → scene stops</label>
+                    <div class="matching-hint">카메라 로그는 디스플레이 밝기가 아니라 scene-linear 노출 범위를 grading code로 압축하는 acquisition curve입니다.</div>
+                </div>
+                <div class="control-group">
+                    <label><b>노출 범위</b></label>
+                    <select id="camera-log-range-mode">
+                        <option value="compact" selected>Compact (-8 ~ +8 stops)</option>
+                        <option value="extended">Extended (-12 ~ +12 stops)</option>
+                        <option value="auto">Auto selected log ranges</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <div class="matching-row">
+                        <span class="matching-label">Min stop</span>
+                        <span class="matching-value" id="camera-log-min-stop-value">-8</span>
+                    </div>
+                    <input type="range" id="camera-log-min-stop" min="-16" max="-1" step="1" value="-8">
+                    <div class="matching-row">
+                        <span class="matching-label">Max stop</span>
+                        <span class="matching-value" id="camera-log-max-stop-value">+8</span>
+                    </div>
+                    <input type="range" id="camera-log-max-stop" min="1" max="16" step="1" value="8">
+                    <div class="matching-hint" id="camera-log-range-readout">표시 범위: -8 ~ +8 stops</div>
+                </div>
+                <div class="control-group">
+                    <label><b>Camera acquisition log</b></label>
+                    <label><input type="checkbox" class="camera-log-toggle" value="logc3" checked> ARRI LogC3 (EI 800)</label>
+                    <label><input type="checkbox" class="camera-log-toggle" value="slog3" checked> Sony S-Log3</label>
+                    <label><input type="checkbox" class="camera-log-toggle" value="vlog" checked> Panasonic V-Log</label>
+                    <label><input type="checkbox" class="camera-log-toggle" value="log3g10" checked> RED Log3G10</label>
+                    <div class="matching-hint">X축/축 라벨은 선택한 모드에 맞춰 바뀝니다. Encode 모드는 카메라 로그 이해에 가장 직접적입니다.</div>
+                </div>
+            </div>
+
+            <!-- Color Matching 컨트롤 -->
+            <div id="controls-matching">
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">CMF 그래프</span>
+                        <select id="matching-cmf-view">
+                            <option value="rgb" selected>RGB CMF (r̄, ḡ, b̄)</option>
+                            <option value="xyz">XYZ CMF (x̄, ȳ, z̄)</option>
+                            <option value="both">둘 다 (겹쳐 보기)</option>
+                        </select>
+                    </div>
+                    <label><input type="checkbox" id="matching-luminous-efficiency"> 광효율 함수 V(λ) 표시</label>
+                    <label><input type="checkbox" id="matching-rgb-primary-wavelengths"> RGB 원색 파장 위치 표시</label>
+                </div>
+
+                <p class="desc" style="margin-top:0;">
+                    단색 시험광(λ)과 3원색 혼합광을 2분할 시야에서 같게 맞추는 과정을 시뮬레이션합니다.
+                    음수 계수는 “원색을 시험광 쪽에 더함”으로 해석됩니다.
+                </p>
+
+                <input type="hidden" id="matching-wavelength" value="555">
+                <div class="control-group matching-inline">
+                    <label><input type="checkbox" id="matching-auto-solve"> 자동 매칭(이론값으로 수렴)</label>
+                </div>
+
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label" id="matching-r-label">R</span>
+                        <span class="matching-value" id="matching-r-value">0.0000</span>
+                    </div>
+                    <input type="range" id="matching-r" step="0.0005">
+                </div>
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label" id="matching-g-label">G</span>
+                        <span class="matching-value" id="matching-g-value">0.0000</span>
+                    </div>
+                    <input type="range" id="matching-g" step="0.0005">
+                </div>
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label" id="matching-b-label">B</span>
+                        <span class="matching-value" id="matching-b-value">0.0000</span>
+                    </div>
+                    <input type="range" id="matching-b" step="0.0005">
+                </div>
+
+                <div class="control-group matching-inline">
+                    <label id="matching-allow-negative-label" style="flex:1;"><input type="checkbox" id="matching-allow-negative"> 음수 계수 허용</label>
+                    <button id="matching-snap" class="btn-secondary" type="button">이론값으로 스냅</button>
+                </div>
+
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">오차 (ΔXYZ)</span>
+                        <span class="matching-value" id="matching-error-value">0.0000</span>
+                    </div>
+                    <div class="matching-hint" id="matching-hint"></div>
+                </div>
+            </div>
+
+            <!-- XYZ 컨트롤 -->
+            <div id="controls-xyz">
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">좌표계 모드</span>
+                        <select id="xyz-coordinate-mode">
+                            <option value="xyz" selected>XYZ 직교 좌표계</option>
+                            <option value="rgb">RGB 직교 좌표계</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label><input type="checkbox" id="toggle-xyz-secondary-axes"> 다른 좌표계 축 표시</label>
+                </div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyz-spectrum-volume" checked> 가시광선 스펙트럼 곡선 + 색상 입체</label>
+                </div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyz-secondary-polygon"> 다른 좌표계 색상 입체 함께 표시</label>
+                </div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyz-normalized-plane"> X + Y + Z = 1 평면 + xy 투영선</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-cie-rgb-xyz"> RGB→XYZ 선형변환 분해
+                        보기</label></div>
+                <div class="control-group" id="cie-rgb-transform-controls" style="display:none;">
+                    <div class="matching-row">
+                        <span class="matching-label">분해 파장 λ</span>
+                        <span class="matching-value" id="xyz-decomp-wavelength-value">555 nm</span>
+                    </div>
+                    <input type="range" id="xyz-decomp-wavelength" min="380" max="780" step="1" value="555">
+                    <div class="matching-hint" id="xyz-decomp-hint">r̄M_R + ḡM_G + b̄M_B = [X, Y, Z] 를 XYZ 공간에서 분해해 보여줍니다.</div>
+                    <div class="matching-hint" id="xyz-decomp-coeffs"></div>
+                </div>
+            </div>
+
+            <!-- CIELAB 컨트롤 -->
+            <div id="controls-lab">
+                <div class="control-group"><label><input type="checkbox" id="toggle-lab-surface" checked> CIELAB 표면
+                        메쉬</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-lab-neutral" checked> 중성축
+                        (a*=0,b*=0)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-lab-ab-plane"> L*=50 a*b* 평면
+                        (opponent 축)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-lab-grid" checked> 바닥 그리드
+                        (정규화 좌표)</label></div>
+                <div class="control-group">
+                    <div class="matching-hint">표시 스케일: a*, b*는 중심(0.5) 기준 opponent 축으로 정규화해 표시</div>
+                    <div class="matching-hint">L*는 [0, 100]을 0~1 높이로 정규화해 표시</div>
+                </div>
+            </div>
+
+            <!-- ICtCp 컨트롤 -->
+            <div id="controls-ictcp">
+                <div class="control-group"
+                    style="background: rgba(74,144,226,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #6eb5ff;">
+                        <input type="checkbox" id="toggle-ictcp-srgb"> ■ sRGB (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(100,200,100,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #88ff88;">
+                        <input type="checkbox" id="toggle-ictcp-p3"> ■ Display P3 (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(255,186,92,0.22); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #ffbf6a;">
+                        <input type="checkbox" id="toggle-ictcp-rec601"> ■ Rec. 601 (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(220,180,50,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #ffdd66;">
+                        <input type="checkbox" id="toggle-ictcp-rec709"> ■ Rec. 709 (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(255,100,100,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #ff8888;">
+                        <input type="checkbox" id="toggle-ictcp-rec2020" checked> ■ Rec. 2020 (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(200,100,255,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #dd88ff;">
+                        <input type="checkbox" id="toggle-ictcp-pq"> ▧ Rec. 2100 PQ (HDR, 10000nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(255,150,50,0.2); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
+                    <label style="font-weight: bold; color: #ffaa44;">
+                        <input type="checkbox" id="toggle-ictcp-hlg"> ▧ Rec. 2100 HLG (HDR, 1000nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-ictcp-3d-polygons" checked> <b style="color:#ffccaa;">3D
+                            폴리곤 표시</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-ictcp-solid-surface" checked> <b>폴리곤 표면 채우기
+                            (Solid)</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-ictcp-surface-lines"> <b>폴리곤 표면 선 표시
+                            (Wire)</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <div class="matching-row">
+                        <span class="matching-label">폴리곤 불투명도</span>
+                        <span class="matching-value" id="ictcp-opacity-value">100%</span>
+                    </div>
+                    <input type="range" id="input-ictcp-opacity" min="0.05" max="1" step="0.05" value="1">
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <label><input type="checkbox" id="toggle-ictcp-log-i" checked> <b>I/밝기축 Log 스케일 적용
+                            (밝기 비교용)</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <label><input type="checkbox" id="toggle-ictcp-y-heatmap"> 밝기 히트맵 색상으로 폴리곤 표시</label>
+                </div>
+                <div class="control-group" style="margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-ictcp-y-display-limit"> 폴리곤 밝기를 모니터 피크 기준으로
+                        표현</label>
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <label>사용자 모니터 피크 밝기
+                        <input type="number" id="input-ictcp-display-peak-nits" min="80" max="10000" step="10"
+                            value="600" style="width:72px; margin-left:6px;"> nits
+                    </label>
+                </div>
+                <div class="control-group">
+                    <div class="matching-row">
+                        <span class="matching-label">세로축 표시</span>
+                        <select id="ictcp-axis-mode">
+                            <option value="signal" selected>I signal</option>
+                            <option value="decoded-luminance">Decoded luminance</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group" id="ictcp-eotf-controls">
+                    <div class="matching-row">
+                        <span class="matching-label">EOTF 해석</span>
+                        <select id="ictcp-eotf-mode">
+                            <option value="pq" selected>PQ / ST 2084</option>
+                            <option value="hlg">HLG / BT.2100</option>
+                            <option value="gamma24">Gamma 2.4</option>
+                            <option value="srgb">sRGB</option>
+                        </select>
+                    </div>
+                    <label>디코딩 기준 피크
+                        <input type="number" id="input-ictcp-decode-peak-nits" min="80" max="10000" step="10"
+                            value="1000" style="width:72px; margin-left:6px;"> nits
+                    </label>
+                </div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-ictcp-neutral" checked> 중성축
+                        (R=G=B)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-ictcp-base-plane"> I=0 Ct/Cp 평면
+                        (opponent 축)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-ictcp-grid" checked> 바닥 그리드
+                        (I=0)</label>
+                </div>
+                <div class="control-group">
+                    <div class="matching-hint">BT.2100 ICtCp: Rec.2020 RGB → LMS → PQ → I, Ct, Cp</div>
+                    <div class="matching-hint">표시 좌표: I는 세로축, Ct/Cp는 색차 축으로 중심(0.5) 기준 정규화</div>
+                </div>
+            </div>
+
+            <!-- xyY 컨트롤 -->
+            <div id="controls-xyy">
+                <div class="control-group" style="margin-bottom: 6px;">
+                    <div class="matching-section-title">RGB / ICC Profile Spaces</div>
+                    <div class="matching-hint">고정 최대 nits가 아니라 profile white를 기준으로 하며, 3D 높이는 비교용 100nit reference white로 시각화합니다.</div>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(74,144,226,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #6eb5ff;">
+                        <input type="checkbox" id="toggle-xyy-srgb"> ■ sRGB (profile, D65)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(100,200,100,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #88ff88;">
+                        <input type="checkbox" id="toggle-xyy-p3"> ■ Display P3 (profile, D65)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(255,122,200,0.18); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #ff7ac8;">
+                        <input type="checkbox" id="toggle-xyy-adobe-rgb"> ■ Adobe RGB (profile, D65)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(183,243,107,0.18); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
+                    <label style="font-weight: bold; color: #b7f36b;">
+                        <input type="checkbox" id="toggle-xyy-prophoto-rgb"> ■ ProPhoto RGB (profile, D50)
+                    </label>
+                </div>
+                <div class="control-group" style="margin-bottom: 6px;">
+                    <div class="matching-section-title">Video / Broadcast Standards</div>
+                    <div class="matching-hint">영상 신호와 표시 조건을 함께 다루는 표준입니다. SDR 계열은 100nit, HDR 계열은 각 기준 peak로 시각화합니다.</div>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(255,186,92,0.22); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #ffbf6a;">
+                        <input type="checkbox" id="toggle-xyy-rec601"> ■ Rec. 601 (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(220,180,50,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #ffdd66;">
+                        <input type="checkbox" id="toggle-xyy-rec709"> ■ Rec. 709 (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(255,100,100,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #ff8888;">
+                        <input type="checkbox" id="toggle-xyy-rec2020"> ■ Rec. 2020 (SDR, 100nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(200,100,255,0.2); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #dd88ff;">
+                        <input type="checkbox" id="toggle-xyy-pq"> ▧ Rec. 2100 PQ (HDR, 10000nits)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(255,150,50,0.2); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
+                    <label style="font-weight: bold; color: #ffaa44;">
+                        <input type="checkbox" id="toggle-xyy-hlg"> ▧ Rec. 2100 HLG (HDR, 1000nits)
+                    </label>
+                </div>
+                <div class="control-group" style="margin-bottom: 6px;">
+                    <div class="matching-section-title">Print / CMYK Output Profiles</div>
+                    <div class="matching-hint">CMYK 출력 프로파일은 잉크, 종이, 인쇄 조건에 따른 장치 의존 색역입니다. 여기서는 실제 ICC LUT 전체가 아니라 xy 평면의 근사 외곽과 white point를 비교용으로 표시합니다.</div>
+                </div>
+                <div class="control-group"
+                    style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-bottom: 2px;">
+                    <div style="background: rgba(255,102,204,0.18); padding: 8px; border-radius: 6px;">
+                        <label style="font-weight: bold; color: #ff66cc;">
+                            <input type="checkbox" id="toggle-xyy-cmyk-fogra39"> ◇ ISO Coated v2 (FOGRA39)
+                        </label>
+                    </div>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(102,238,255,0.16); padding: 8px; border-radius: 6px; margin-bottom: 2px;">
+                    <label style="font-weight: bold; color: #66eeff;">
+                        <input type="checkbox" id="toggle-xyy-cmyk-swopv2"> ◇ US Web Coated (SWOP v2)
+                    </label>
+                </div>
+                <div class="control-group"
+                    style="background: rgba(186,255,102,0.16); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
+                    <label style="font-weight: bold; color: #baff66;">
+                        <input type="checkbox" id="toggle-xyy-cmyk-japan2001"> ◇ Japan Color 2001 Coated
+                    </label>
+                </div>
+
+                <div class="control-group"
+                    style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 12px; margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-xyy-3d-polygons"> <b style="color:#ffccaa;">3D 폴리곤
+                            표시</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-solid-surface" checked> <b>폴리곤 표면 채우기 (Solid)</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-xyy-surface-lines"> <b>폴리곤 표면 선 표시
+                            (Wire)</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <div class="matching-row">
+                        <span class="matching-label">폴리곤 불투명도</span>
+                        <span class="matching-value" id="xyy-opacity-value">100%</span>
+                    </div>
+                    <input type="range" id="input-xyy-opacity" min="0.05" max="1" step="0.05" value="1">
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <label><input type="checkbox" id="toggle-log-y" checked> <b>Y축 Log 스케일 적용 (100 vs 10000nits 비교용)</b></label>
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <label><input type="checkbox" id="toggle-y-heatmap"> 밝기 히트맵 색상으로 폴리곤 표시</label>
+                </div>
+                <div class="control-group" style="margin-bottom: 2px;">
+                    <label><input type="checkbox" id="toggle-y-display-limit"> 폴리곤 밝기를 모니터 피크 기준으로 표현</label>
+                </div>
+                <div class="control-group" style="margin-bottom: 12px;">
+                    <label>사용자 모니터 피크 밝기
+                        <input type="number" id="input-display-peak-nits" min="80" max="10000" step="10" value="600"
+                            style="width:72px; margin-left:6px;"> nits
+                    </label>
+                </div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-curve"> 외곽 스펙트럼
+                        궤적</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-curtain" checked> 밝기(Luminance)
+                        커튼</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-base" checked> 바닥 2D xy 색도도
+                        (Y=0)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-chromaticity-fill" checked>
+                        바닥 색도도 컬러 채우기 (표준, sRGB)</label></div>
+
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-plane" checked> 바닥면을 하얗게 채우기
+                        (Y=0)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-triangles" checked> 2D 색역 삼각형
+                        표시</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-macadam"> MacAdam 타원
+                        (CIE 1942 · 25점 · 1-step)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-whitepoint-standards"> 화이트포인트
+                        표준 표시 (D50 / D55 / D60 / D65 / D75 / E)</label></div>
+                <div class="control-group"><label><input type="checkbox" id="toggle-xyy-grid" checked> 바닥 그리드
+                        (0~1)</label></div>
+            </div>
+
+            <!-- RGB 가산 / CMY 감산 컨트롤 -->
+            <div id="controls-additive-subtractive">
+                <div class="control-group">
+                    <label><b>Profile selection</b></label>
+                    <div class="matching-hint">선택한 프로파일 종류에 따라 RGB는 가산광, 인쇄 프로파일은 CMY 감산 잉크로 표시합니다.</div>
+                    <div class="matching-row">
+                        <span class="matching-label">Left card</span>
+                        <select id="addsub-left-profile">
+                            <optgroup label="RGB additive profiles">
+                                <option value="srgb" selected>sRGB / Rec.709</option>
+                                <option value="display-p3">Display P3</option>
+                                <option value="adobe-rgb">Adobe RGB</option>
+                                <option value="prophoto-rgb">ProPhoto RGB</option>
+                                <option value="rec601">Rec.601</option>
+                                <option value="rec2020">Rec.2020 / Rec.2100</option>
+                            </optgroup>
+                            <optgroup label="Print CMY profiles">
+                                <option value="fogra39">ISO Coated v2 (FOGRA39)</option>
+                                <option value="swopv2">US Web Coated (SWOP v2)</option>
+                                <option value="japan2001">Japan Color 2001 Coated</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="matching-row">
+                        <span class="matching-label">Right card</span>
+                        <select id="addsub-right-profile">
+                            <optgroup label="RGB additive profiles">
+                                <option value="srgb">sRGB / Rec.709</option>
+                                <option value="display-p3">Display P3</option>
+                                <option value="adobe-rgb">Adobe RGB</option>
+                                <option value="prophoto-rgb">ProPhoto RGB</option>
+                                <option value="rec601">Rec.601</option>
+                                <option value="rec2020">Rec.2020 / Rec.2100</option>
+                            </optgroup>
+                            <optgroup label="Print CMY profiles">
+                                <option value="fogra39" selected>ISO Coated v2 (FOGRA39)</option>
+                                <option value="swopv2">US Web Coated (SWOP v2)</option>
+                                <option value="japan2001">Japan Color 2001 Coated</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label><b>RGB additive controls</b></label>
+                    <div class="matching-hint">RGB 계열 프로파일 카드에 적용됩니다.</div>
+                    <div class="matching-row">
+                        <span class="matching-label">R light</span>
+                        <span class="matching-value" id="addsub-r-value">1.00</span>
+                    </div>
+                    <input type="range" id="addsub-r" min="0" max="1" step="0.01" value="1">
+                    <div class="matching-row">
+                        <span class="matching-label">G light</span>
+                        <span class="matching-value" id="addsub-g-value">1.00</span>
+                    </div>
+                    <input type="range" id="addsub-g" min="0" max="1" step="0.01" value="1">
+                    <div class="matching-row">
+                        <span class="matching-label">B light</span>
+                        <span class="matching-value" id="addsub-b-value">1.00</span>
+                    </div>
+                    <input type="range" id="addsub-b" min="0" max="1" step="0.01" value="1">
+                </div>
+                <div class="control-group">
+                    <label><b>CMY subtractive controls</b></label>
+                    <div class="matching-hint">인쇄 CMY 프로파일 카드에 적용됩니다.</div>
+                    <div class="matching-row">
+                        <span class="matching-label">C ink</span>
+                        <span class="matching-value" id="addsub-c-value">1.00</span>
+                    </div>
+                    <input type="range" id="addsub-c" min="0" max="1" step="0.01" value="1">
+                    <div class="matching-row">
+                        <span class="matching-label">M ink</span>
+                        <span class="matching-value" id="addsub-m-value">1.00</span>
+                    </div>
+                    <input type="range" id="addsub-m" min="0" max="1" step="0.01" value="1">
+                    <div class="matching-row">
+                        <span class="matching-label">Y ink</span>
+                        <span class="matching-value" id="addsub-y-value">1.00</span>
+                    </div>
+                    <input type="range" id="addsub-y" min="0" max="1" step="0.01" value="1">
+                </div>
+                <div class="control-group">
+                    <button class="btn-secondary" id="addsub-reset-btn" type="button">초기값으로</button>
+                </div>
+            </div>
+
+            <!-- 범례 -->
+            <div id="legend-xyz" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:linear-gradient(90deg,#ff9056,#60e6be,#9680ff);"></div> XYZ 축: X / Y / Z
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:linear-gradient(90deg,#ff6060,#60ff80,#60a0ff);"></div> RGB 축: R / G / B
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#dddddd;"></div> 좌표계 모드에 따라 직교 축과 기울어진 기저 축을 교차 표시
+                </div>
+            </div>
+
+            <div id="legend-xyy" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ff3333;"></div> x 축 (적색도, 0~1)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffffff;"></div> Y 축 (밝기, 수직 높이)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#33ff33;"></div> y 축 (녹색도, 깊이 0~1)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ff66cc;"></div> CMYK 근사 외곽 (FOGRA39 / SWOP / JapanColor)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#bbbbbb;"></div> 바닥 라벨: 표준 이름 / white point
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#111111;"></div> MacAdam 타원 (xy, CIE 1942 25점 · 1-step, ×10 표시)
+                </div>
+            </div>
+
+            <div id="legend-transfer" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffffff;"></div> 실선: EOTF / Decode (code → light)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:repeating-linear-gradient(90deg,#ffffff 0 6px,transparent 6px 10px);"></div> 점선: OETF / Encode (light → code)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#b78cff;"></div> PQ/HLG는 HDR transfer 특성 비교용으로 정규화 표시
+                </div>
+            </div>
+
+            <div id="legend-camera-log" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:linear-gradient(90deg,#36d399,#38bdf8,#f97316,#ef4444);"></div> 카메라 로그: scene-linear 노출 → grading code
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffffff;"></div> stops 기준: 18% gray를 0 stop으로 표시
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#b78cff;"></div> display EOTF/OETF와 다른 acquisition OETF
+                </div>
+            </div>
+
+            <div id="legend-lab" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ff6666;"></div> a* 축 (녹색↔적색 축, 정규화)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffffff;"></div> L* 축 (밝기, 0~100)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#66aaff;"></div> b* 축 (청색↔황색 축, 정규화)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#bbbbbb;"></div> 중성축: a*=0, b*=0
+                </div>
+            </div>
+
+            <div id="legend-ictcp" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffffff;"></div> I 축: intensity, HDR 밝기 성분
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#66ccff;"></div> Ct 축: blue-yellow 계열 색차
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ff88aa;"></div> Cp 축: red-green 계열 색차
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:linear-gradient(90deg,#222,#fff);"></div> 중성축: R=G=B → Ct≈0, Cp≈0
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:linear-gradient(90deg,#6eb5ff,#ff8888,#dd88ff);"></div> 표준별 RGB/HDR
+                    볼륨: absolute XYZ → BT.2100 ICtCp 투영
+                </div>
+            </div>
+
+            <div id="legend-matching" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:#888;"></div> 2분할 시야: 좌(Test) / 우(Match)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ff3333;"></div> R 계수 또는 x̄ / r̄ 곡선
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#33ff33;"></div> G 계수 또는 ȳ / ḡ 곡선
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#3333ff;"></div> B 계수 또는 z̄ / b̄ 곡선
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffd45a;"></div> 광효율 함수 V(λ) = ȳ(λ)
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:linear-gradient(90deg,#ff4444,#44ff44,#4488ff);"></div> CIE RGB 원색 파장
+                </div>
+            </div>
+
+            <div id="legend-rgb-compare" class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background:linear-gradient(90deg,#f00,#0f0,#00f);"></div> 같은 RGB 숫자, 다른 색공간 해석
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffffff;"></div> XYZ/xy: RGB 코드값을 각 표준의 transfer와 primaries로 해석한 결과
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background:#ffcc66;"></div> HDR 항목은 표시용 SDR 프리뷰와 실제 nits 수치를 함께 표시
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="instruction" id="interaction-instruction">좌클릭: x/y 회전 | Shift+좌클릭: Y축 회전 | 우클릭: 평면 이동 | 휠/핀치: 줌</div>
+
+    <div id="canvas-container"></div>
+    <div id="main-overlay">
+        <div id="start-main" role="button" tabindex="0" aria-label="Lift cover to enter the demo">
+            <div class="start-hero">
+                <div class="start-visual" aria-hidden="true">
+                    <svg viewBox="0 0 360 280">
+                        <defs>
+                            <linearGradient id="startSpectrumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#41b6ff" />
+                                <stop offset="34%" stop-color="#2dff71" />
+                                <stop offset="66%" stop-color="#ffe45a" />
+                                <stop offset="100%" stop-color="#ff4d64" />
+                            </linearGradient>
+                            <clipPath id="startChromaticityClip">
+                                <path id="start-chromaticity-clip-path"
+                                    d="M79 231C43 187 41 101 96 51c38-35 88-22 106 23 20 50 72 54 105 87 24 24 30 58 8 81-35 36-182 55-236-11Z" />
+                            </clipPath>
+                        </defs>
+                        <path id="start-spectrum-shape" class="start-spectrum-shape"
+                            d="M79 231C43 187 41 101 96 51c38-35 88-22 106 23 20 50 72 54 105 87 24 24 30 58 8 81-35 36-182 55-236-11Z" />
+                        <image id="start-chromaticity-fill" class="start-chromaticity-fill"
+                            x="42" y="-1.33" width="345" height="253.33"
+                            preserveAspectRatio="none"
+                            clip-path="url(#startChromaticityClip)" />
+                        <path id="start-locus-line" class="start-locus-line"
+                            d="M79 231C43 187 41 101 96 51c38-35 88-22 106 23 20 50 72 54 105 87 24 24 30 58 8 81-35 36-182 55-236-11Z" />
+                        <path id="start-purple-line" class="start-purple-line" d="M79 231C138 252 258 259 315 242" />
+                        <path id="start-gamut-triangle" class="start-gamut-triangle" d="M118 204L190 74L286 214Z" />
+                        <g id="start-gamut-points">
+                            <circle cx="118" cy="204" r="5" />
+                            <circle cx="190" cy="74" r="5" />
+                            <circle cx="286" cy="214" r="5" />
+                        </g>
+                        <path class="start-grid-line" d="M74 230H316M94 191H293M102 152H268M112 113H230M139 76H196" />
+                        <path class="start-grid-line" d="M94 236L186 48M139 251L218 72M191 256L250 110M247 252L286 158" />
+                    </svg>
+                </div>
+                <div class="start-kicker">CIE Chromaticity & Gamut</div>
+                <h1>Understanding Color</h1>
+                <p>Reading color through the xy chromaticity diagram, gamut triangles, and the path from RGB numbers to perceived light.</p>
+                <div class="start-lift-cue" aria-hidden="true">
+                    <span class="start-lift-arrow">↑</span>
+                    <span>Lift to explore</span>
+                </div>
+            </div>
+        </div>
+        <div id="rgb-compare-main">
+            <div class="matching-main-header">
+                <div class="matching-main-title">RGB Color Space Compare</div>
+                <div class="matching-main-meta" id="rgb-compare-main-meta"></div>
+            </div>
+            <div class="matching-main-panel">
+                <div class="matching-section-title">같은 RGB 코드값을 색공간별로 해석</div>
+                <div id="rgb-compare-card-grid" class="rgb-compare-card-grid"></div>
+            </div>
+            <div class="matching-main-panel rgb-compare-pipeline-panel">
+                <div class="matching-section-title">RGB to Monitor Rendering Pipeline</div>
+                <div class="rgb-pipeline-diagram">
+                    <div class="rgb-pipeline-step">
+                        <div class="rgb-pipeline-index">01</div>
+                        <svg class="rgb-pipeline-icon" viewBox="0 0 120 82" role="img" aria-label="RGB code value">
+                            <rect x="12" y="10" width="96" height="58" rx="8" class="icon-terminal-shell"></rect>
+                            <rect x="18" y="16" width="84" height="42" rx="4" class="icon-terminal-screen"></rect>
+                            <path d="M22 25h76M22 35h76M22 45h76M22 55h76" class="icon-terminal-scan"></path>
+                            <text x="60" y="39" class="icon-terminal-code" id="rgb-pipeline-terminal-code">[255,0,0]</text>
+                            <path d="M48 68h24M39 74h42" class="icon-terminal-stand"></path>
+                        </svg>
+                        <div class="rgb-pipeline-title">RGB Code Value</div>
+                        <div class="rgb-pipeline-chip" id="rgb-pipeline-code">RGB(255, 0, 0)</div>
+                        <p>숫자 자체는 아직 완전한 색이 아니라, 특정 색공간 안에서 해석될 코드값입니다.</p>
+                    </div>
+                    <div class="rgb-pipeline-step">
+                        <div class="rgb-pipeline-index">02</div>
+                        <svg class="rgb-pipeline-icon" viewBox="0 0 120 82" role="img" aria-label="Source profile">
+                            <defs>
+                                <linearGradient id="iccSpectrumGradient" x1="30%" y1="10%" x2="84%" y2="72%">
+                                    <stop offset="0%" stop-color="#18bb4e" />
+                                    <stop offset="35%" stop-color="#b7e733" />
+                                    <stop offset="56%" stop-color="#fff46c" />
+                                    <stop offset="72%" stop-color="#ff4c32" />
+                                    <stop offset="100%" stop-color="#f02f66" />
+                                </linearGradient>
+                                <radialGradient id="iccCyanBlueGradient" cx="32%" cy="70%" r="60%">
+                                    <stop offset="0%" stop-color="#162dba" />
+                                    <stop offset="42%" stop-color="#00a7d9" stop-opacity="0.95" />
+                                    <stop offset="100%" stop-color="#00d87a" stop-opacity="0" />
+                                </radialGradient>
+                                <radialGradient id="iccWhiteCoreGradient" cx="49%" cy="52%" r="36%">
+                                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+                                    <stop offset="45%" stop-color="#ffffff" stop-opacity="0.48" />
+                                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                                </radialGradient>
+                                <clipPath id="iccProfileSpectrumClip">
+                                    <path d="M47 53C39 42 38 24 47 18C59 10 76 25 90 45C80 49 64 55 47 53Z"></path>
+                                </clipPath>
+                            </defs>
+                            <path class="icon-icc-page" d="M28 4H78L97 23V76Q97 80 93 80H27Q23 80 23 76V9Q23 4 28 4Z"></path>
+                            <path class="icon-icc-corner-fill" d="M78 4V23H97Z"></path>
+                            <path class="icon-icc-corner-line" d="M78 4V23H97"></path>
+                            <g clip-path="url(#iccProfileSpectrumClip)">
+                                <rect x="38" y="12" width="55" height="44" class="icon-icc-spectrum-base"></rect>
+                                <rect x="38" y="12" width="55" height="44" class="icon-icc-spectrum-blue"></rect>
+                                <rect x="38" y="12" width="55" height="44" class="icon-icc-spectrum-white"></rect>
+                            </g>
+                            <path class="icon-icc-spectrum-edge" d="M47 53C39 42 38 24 47 18C59 10 76 25 90 45C80 49 64 55 47 53Z"></path>
+                            <text x="60" y="68" class="icon-icc-label">ICC Profile</text>
+                        </svg>
+                        <div class="rgb-pipeline-title">Source Profile</div>
+                        <div class="rgb-pipeline-chip">ICC Profile</div>
+                        <p>이미지에 포함된 ICC profile이 RGB 숫자의 원색, white point, transfer를 정의합니다.</p>
+                    </div>
+                    <div class="rgb-pipeline-step">
+                        <div class="rgb-pipeline-index">03</div>
+                        <svg class="rgb-pipeline-icon" viewBox="0 0 120 82" role="img" aria-label="Linear light">
+                            <path d="M18 65h84M18 65V14"></path>
+                            <path class="icon-curve" d="M22 61c18-2 24-14 34-29 10-15 22-20 43-20"></path>
+                            <path class="icon-line" d="M22 61L98 12"></path>
+                            <circle cx="56" cy="32" r="5"></circle>
+                        </svg>
+                        <div class="rgb-pipeline-title">Linear Light</div>
+                        <div class="rgb-pipeline-chip">Decode TRC</div>
+                        <p>sRGB curve, gamma, PQ, HLG 같은 transfer function을 풀어 선형광 값으로 바꿉니다.</p>
+                    </div>
+                    <div class="rgb-pipeline-step">
+                        <div class="rgb-pipeline-index">04</div>
+                        <svg class="rgb-pipeline-icon" viewBox="0 0 120 82" role="img" aria-label="Profile connection space">
+                            <path d="M60 66V16M28 58l32-42 32 42"></path>
+                            <circle cx="60" cy="16" r="6" class="icon-white"></circle>
+                            <circle cx="28" cy="58" r="7" class="icon-red"></circle>
+                            <circle cx="60" cy="58" r="7" class="icon-green"></circle>
+                            <circle cx="92" cy="58" r="7" class="icon-blue"></circle>
+                            <text x="54" y="43">XYZ</text>
+                        </svg>
+                        <div class="rgb-pipeline-title">PCS</div>
+                        <div class="rgb-pipeline-chip">XYZ / Lab</div>
+                        <p>장치에 묶이지 않은 Profile Connection Space에서 “의도한 실제 색”으로 표현됩니다.</p>
+                    </div>
+                    <div class="rgb-pipeline-step">
+                        <div class="rgb-pipeline-index">05</div>
+                        <svg class="rgb-pipeline-icon" viewBox="0 0 120 82" role="img" aria-label="Display profile">
+                            <rect x="20" y="14" width="80" height="48" rx="8"></rect>
+                            <path d="M48 72h24M60 62v10"></path>
+                            <path class="icon-gamut" d="M39 49l19-25 29 31z"></path>
+                            <circle cx="58" cy="41" r="5" class="icon-white"></circle>
+                        </svg>
+                        <div class="rgb-pipeline-title">Display Profile</div>
+                        <div class="rgb-pipeline-chip">Monitor ICC</div>
+                        <p>운영체제의 모니터 ICC profile이 현재 디스플레이의 원색, white point, TRC에 맞춰 변환합니다.</p>
+                    </div>
+                    <div class="rgb-pipeline-step">
+                        <div class="rgb-pipeline-index">06</div>
+                        <svg class="rgb-pipeline-icon" viewBox="0 0 120 82" role="img" aria-label="GPU monitor RGB">
+                            <rect x="28" y="18" width="64" height="46" rx="8"></rect>
+                            <path d="M20 30h8M20 42h8M20 54h8M92 30h8M92 42h8M92 54h8M42 10v8M60 10v8M78 10v8M42 64v8M60 64v8M78 64v8"></path>
+                            <path class="icon-line" d="M42 50l12-15 10 8 14-18"></path>
+                            <circle cx="42" cy="50" r="3" class="icon-red"></circle>
+                            <circle cx="54" cy="35" r="3" class="icon-green"></circle>
+                            <circle cx="78" cy="25" r="3" class="icon-blue"></circle>
+                        </svg>
+                        <div class="rgb-pipeline-title">Monitor RGB</div>
+                        <div class="rgb-pipeline-chip">GPU / LUT</div>
+                        <p>컬러 관리 결과가 모니터가 받을 RGB 신호로 재인코딩되고, 필요하면 LUT/HDR 처리가 적용됩니다.</p>
+                    </div>
+                    <div class="rgb-pipeline-step">
+                        <div class="rgb-pipeline-index">07</div>
+                        <svg class="rgb-pipeline-icon" viewBox="0 0 120 82" role="img" aria-label="Panel light">
+                            <rect x="16" y="18" width="62" height="46" rx="8"></rect>
+                            <rect x="28" y="26" width="8" height="30" class="icon-red"></rect>
+                            <rect x="41" y="26" width="8" height="30" class="icon-green"></rect>
+                            <rect x="54" y="26" width="8" height="30" class="icon-blue"></rect>
+                            <path class="icon-light" d="M78 29l26-11M80 41h28M78 53l26 11"></path>
+                            <circle cx="101" cy="41" r="5" class="icon-white"></circle>
+                        </svg>
+                        <div class="rgb-pipeline-title">Panel Light</div>
+                        <div class="rgb-pipeline-chip">R · G · B Subpixels</div>
+                        <p>패널의 RGB 서브픽셀이 실제 빛을 내고, 그 빛이 관찰자의 눈에 색으로 지각됩니다.</p>
+                    </div>
+                </div>
+                <div class="rgb-pipeline-summary">
+                    Same RGB numbers do not guarantee the same color. The source profile defines meaning; the display
+                    profile defines reproduction.
+                </div>
+            </div>
+            <div class="matching-main-panel rgb-compare-note-panel">
+                <div class="matching-section-title">해석 포인트</div>
+                <div id="rgb-compare-note" class="matching-hint"></div>
+            </div>
+        </div>
+        <div id="additive-subtractive-main">
+            <div class="matching-main-header">
+                <div class="matching-main-title">RGB Additive / CMY Subtractive</div>
+                <div class="matching-main-meta" id="addsub-main-meta">light addition vs ink absorption</div>
+            </div>
+            <div class="matching-main-panel addsub-canvas-panel">
+                <div class="matching-section-title">가산 혼합과 감산 혼합을 같은 xy 색도도에 연결</div>
+                <canvas id="addsub-canvas" class="matching-canvas addsub-canvas" aria-label="RGB additive and CMY subtractive simulation"></canvas>
+            </div>
+            <div class="transfer-info-grid">
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">RGB Additive</div>
+                    <p>RGB는 검정에서 시작해 빛을 더하는 모델입니다. R/G/B 빛의 상대 세기가 커질수록 결과는 white에 가까워집니다.</p>
+                </div>
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">CMY Subtractive</div>
+                    <p>CMY는 흰 종이/조명에서 빛을 흡수하는 모델입니다. C는 red, M은 green, Y는 blue 성분을 줄이는 이상화된 필터로 표현합니다.</p>
+                </div>
+            </div>
+        </div>
+        <div id="transfer-main">
+            <div class="matching-main-header">
+                <div class="matching-main-title">Transfer Characteristic Compare</div>
+                <div class="matching-main-meta" id="transfer-main-meta">EOTF / OETF</div>
+            </div>
+            <div class="matching-main-panel transfer-chart-panel">
+                <div class="matching-section-title">Code value ↔ Light 비교</div>
+                <canvas id="transfer-chart-canvas" aria-label="Transfer characteristic comparison graph"></canvas>
+            </div>
+            <div class="transfer-info-grid">
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">Transfer Function</div>
+                    <p>RGB 코드값과 선형광/표시장치 밝기 사이의 변환 규칙입니다. 같은 RGB 숫자라도 이 곡선이 다르면 실제 빛의 비율이 달라집니다.</p>
+                </div>
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">RGB Profile TRC</div>
+                    <p>sRGB, Display P3, Adobe RGB, ProPhoto RGB 같은 RGB 프로파일은 고정 최대 nits보다 RGB code → linear RGB → XYZ 변환을 위한 TRC와 RGB↔XYZ matrix를 정의합니다.</p>
+                    <p>ProPhoto RGB는 사진/인쇄 중심 ICC 워크플로와 PCS의 D50 기준에 맞추기 위해 D50 white point를 사용합니다.</p>
+                </div>
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">OETF vs EOTF</div>
+                    <p>OETF는 scene/light 값을 신호 코드로 압축하고, EOTF는 코드값을 디스플레이 빛으로 복원합니다. Rec.709/601/2020의 표시 실선은 BT.1886 감마 2.4 기준이며, PQ는 절대 nits 기반입니다.</p>
+                </div>
+            </div>
+            <div class="matching-main-panel transfer-allocation-panel">
+                <div class="matching-section-title">왜 비선형 저장이 필요한가?</div>
+                <canvas id="transfer-allocation-canvas" aria-label="Linear versus gamma code allocation demo"></canvas>
+                <div class="rgb-pipeline-summary transfer-allocation-summary">
+                    Linear 저장은 밝은 영역까지 같은 간격으로 code value를 배분하지만, gamma/log 저장은 사람이 더 민감한 shadow와 midtone에 더 촘촘한 단계감을 배치합니다.
+                </div>
+            </div>
+            <div class="matching-main-panel transfer-formula-panel">
+                <div class="matching-section-title">선택된 Transfer Function 수식</div>
+                <div id="transfer-formula-list" class="transfer-formula-list">
+                    <div class="transfer-formula-empty">왼쪽 메뉴에서 표준을 선택하면 해당 transfer 함수 수식이 표시됩니다.</div>
+                </div>
+            </div>
+        </div>
+        <div id="camera-log-main">
+            <div class="matching-main-header">
+                <div class="matching-main-title">Camera Log Curve Compare</div>
+                <div class="matching-main-meta" id="camera-log-main-meta">scene stops / code value</div>
+            </div>
+            <div class="matching-main-panel transfer-chart-panel">
+                <div class="matching-section-title">Scene exposure ↔ Grading code 비교</div>
+                <canvas id="camera-log-chart-canvas" aria-label="Camera log curve comparison graph"></canvas>
+            </div>
+            <div class="transfer-info-grid">
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">Scene Exposure</div>
+                    <p>0 stop은 18% gray입니다. +1 stop은 빛 2배, -1 stop은 빛 1/2배를 뜻하며 장면 안의 상대적인 노출 차이를 나타냅니다.</p>
+                </div>
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">18% Gray</div>
+                    <p>18% gray는 입사한 빛의 약 18%를 반사하는 중간 회색 표면입니다. 여기서는 scene-linear 0.18을 0 stop 기준으로 사용합니다.</p>
+                </div>
+                <div class="matching-main-panel transfer-info-card">
+                    <div class="matching-section-title">Code Value</div>
+                    <p>각 로그 곡선은 같은 노출값을 서로 다른 code value 위치에 배치합니다. black, middle gray, highlight headroom의 위치를 비교하세요.</p>
+                </div>
+            </div>
+        </div>
+        <div id="matching-main">
+            <div class="matching-main-header">
+                <div class="matching-main-title">Color Matching</div>
+                <div class="matching-main-meta" id="matching-main-meta"></div>
+            </div>
+            <div class="matching-main-panel">
+                <div class="matching-section-title">2분할 시야 (Test vs Match)</div>
+                <canvas id="matching-patch-canvas" class="matching-canvas matching-patch-canvas"></canvas>
+            </div>
+            <div class="matching-main-panel matching-graph-panel">
+                <div class="matching-section-title">CMF 그래프</div>
+                <canvas id="matching-graph-canvas" class="matching-canvas matching-graph-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="cie_demo/01-core.js"></script>
+    <script src="cie_demo/02-text-labels.js"></script>
+    <script src="cie_demo/03-color-math.js"></script>
+    <script src="cie_demo/04-scene-data.js"></script>
+    <script src="cie_demo/05-xyy-tab.js"></script>
+    <script src="cie_demo/06-xyz-tab.js"></script>
+    <script src="cie_demo/07-rgb-compare-tab.js"></script>
+    <script src="cie_demo/07-additive-subtractive-tab.js"></script>
+    <script src="cie_demo/07-transfer-tab.js"></script>
+    <script src="cie_demo/07-matching-tab.js"></script>
+    <script src="cie_demo/08-ictcp-tab.js"></script>
+    <script src="cie_demo/09-app-events.js"></script>
+</body>
+
+</html>

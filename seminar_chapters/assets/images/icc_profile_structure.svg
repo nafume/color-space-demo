@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360">
+  <rect width="960" height="360" fill="#ffffff"/>
+  <text x="480" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#222">ICC Profile 구조 요약</text>
+  <rect x="60" y="110" width="210" height="130" rx="8" fill="#e8f1ff" stroke="#2f6fed" stroke-width="2"/>
+  <text x="165" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#18345c">Profile Header</text>
+  <text x="165" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#18345c">class, color space</text>
+  <text x="165" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#18345c">PCS, version</text>
+  <rect x="375" y="90" width="210" height="170" rx="8" fill="#fff1d8" stroke="#e19724" stroke-width="2"/>
+  <text x="480" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#533700">Tag Table</text>
+  <text x="480" y="162" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#533700">tag signature</text>
+  <text x="480" y="186" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#533700">offset, size</text>
+  <text x="480" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#533700">A2B / B2A / TRC</text>
+  <rect x="690" y="110" width="210" height="130" rx="8" fill="#e9f7ef" stroke="#2b9b58" stroke-width="2"/>
+  <text x="795" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#174b2b">Tag Data</text>
+  <text x="795" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#174b2b">curves, matrices</text>
+  <text x="795" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#174b2b">CLUT, metadata</text>
+  <path d="M270 175 L375 175" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M585 175 L690 175" stroke="#555" stroke-width="3" marker-end="url(#arrow)"/>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#555"/></marker></defs>
+  <text x="480" y="312" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#444">PCS(Profile Connection Space)는 CIE XYZ 또는 CIE Lab 기반의 공통 연결 공간으로 쓰인다.</text>
+</svg>

@@ -1,0 +1,1478 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>방송 색 표준 한눈에 보기</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <style>
+    :root {
+      --bg: #101214;
+      --surface: #171a1d;
+      --surface-2: #20252a;
+      --line: rgba(244, 239, 232, .15);
+      --line-strong: rgba(244, 239, 232, .28);
+      --ink: #f4efe8;
+      --muted: #a99f91;
+      --quiet: #756f67;
+      --cyan: #53d7ff;
+      --green: #6df0a4;
+      --amber: #ffd06a;
+      --red: #ff6a5f;
+      --violet: #a694ff;
+      --blue: #7db5ff;
+      --shadow: 0 18px 60px rgba(0, 0, 0, .28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(244, 239, 232, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(244, 239, 232, .035) 1px, transparent 1px),
+        radial-gradient(circle at 12% 6%, rgba(83, 215, 255, .12), transparent 34rem),
+        radial-gradient(circle at 88% 0%, rgba(255, 208, 106, .10), transparent 32rem),
+        var(--bg);
+      background-size: 28px 28px, 28px 28px, auto, auto, auto;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      width: min(1680px, calc(100vw - 48px));
+      margin: 0 auto;
+      padding: 42px 0 56px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(280px, .6fr);
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 980px;
+      font-size: clamp(2rem, 4.5vw, 5rem);
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 20px 0 0;
+      max-width: 840px;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+    }
+
+    .version-card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      background: rgba(23, 26, 29, .82);
+      box-shadow: var(--shadow);
+    }
+
+    .version-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--amber);
+      font-size: .95rem;
+    }
+
+    .version-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 26px 0;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      background: rgba(23, 26, 29, .72);
+      color: var(--muted);
+      font-size: .9rem;
+      white-space: nowrap;
+    }
+
+    .chip b {
+      margin-right: 6px;
+      color: var(--ink);
+    }
+
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 28px 0;
+    }
+
+    .note {
+      min-height: 116px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: rgba(23, 26, 29, .78);
+    }
+
+    .note h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--cyan);
+      letter-spacing: 0;
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+
+    section {
+      margin-top: 34px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.3rem, 2vw, 2rem);
+      letter-spacing: 0;
+    }
+
+    .section-copy {
+      max-width: 980px;
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: .96rem;
+    }
+
+    .section-hint {
+      margin: 0;
+      color: var(--quiet);
+      font-size: .9rem;
+      text-align: right;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line-strong);
+      background: rgba(16, 18, 20, .74);
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1280px;
+    }
+
+    .standards-table {
+      min-width: 1780px;
+      table-layout: fixed;
+    }
+
+    .standards-table th:nth-child(1),
+    .standards-table td:nth-child(1) {
+      width: 150px;
+    }
+
+    .standards-table th:nth-child(2),
+    .standards-table td:nth-child(2) {
+      width: 324px;
+    }
+
+    .standards-table th:nth-child(3),
+    .standards-table td:nth-child(3) {
+      width: 230px;
+    }
+
+    .standards-table th:nth-child(4),
+    .standards-table td:nth-child(4) {
+      width: 220px;
+    }
+
+    .standards-table th:nth-child(5),
+    .standards-table td:nth-child(5) {
+      width: 426px;
+    }
+
+    .standards-table th:nth-child(6),
+    .standards-table td:nth-child(6) {
+      width: 300px;
+    }
+
+    .standards-table th:nth-child(7),
+    .standards-table td:nth-child(7) {
+      width: 130px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      padding: 13px 14px;
+      vertical-align: top;
+      text-align: left;
+      font-size: .92rem;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: 0;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #22272d;
+      color: #fff7ea;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) td {
+      background: rgba(255, 255, 255, .025);
+    }
+
+    .std {
+      min-width: 154px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .std small {
+      display: block;
+      margin-top: 4px;
+      color: var(--quiet);
+      font-weight: 600;
+    }
+
+    .scope {
+      min-width: 220px;
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .scope span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: .88rem;
+      line-height: 1.45;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .mono {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: .84rem;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 7px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .035);
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: .78rem;
+      white-space: nowrap;
+    }
+
+    .spec-groups {
+      display: grid;
+      gap: 10px;
+    }
+
+    .spec-group b {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--amber);
+      font-size: .78rem;
+      font-weight: 750;
+    }
+
+    .yes {
+      color: var(--green);
+      font-weight: 750;
+    }
+
+    .no {
+      color: var(--red);
+      font-weight: 750;
+    }
+
+    .warn {
+      color: var(--amber);
+      font-weight: 750;
+    }
+
+    .formula {
+      color: #d9e6e6;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: .82rem;
+      line-height: 1.45;
+    }
+
+    .compact {
+      min-width: 980px;
+    }
+
+    .compact th,
+    .compact td {
+      font-size: .9rem;
+    }
+
+    .source-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .source-list li {
+      border: 1px solid var(--line);
+      background: rgba(23, 26, 29, .72);
+      padding: 12px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .source-list a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    .source-list a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 920px) {
+      .page {
+        width: min(100vw - 28px, 1680px);
+        padding-top: 28px;
+      }
+
+      header,
+      .note-grid,
+      .source-list {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .section-hint {
+        margin-top: 6px;
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <h1>방송 색 표준 한눈에 보기</h1>
+        <p class="subtitle">
+          BT.601, BT.709, BT.1886, BT.2020, ST 2084(PQ), BT.2100, ARIB STD-B67(HLG)가
+          각각 무엇을 정의하는지, 그리고 영상 파일의 primaries / transfer / matrix 태그와 어떻게 연결되는지 비교한다.
+        </p>
+      </div>
+      <aside class="version-card">
+        <strong>읽는 법</strong>
+        <p>
+          표준 이름 하나가 색공간 전체를 항상 뜻하지는 않는다. 실제 파일은 보통
+          <span class="mono">color_primaries</span>,
+          <span class="mono">color_transfer</span>,
+          <span class="mono">colorspace(matrix)</span>,
+          <span class="mono">color_range</span>를 함께 확인해야 한다.
+        </p>
+      </aside>
+    </header>
+
+    <div class="chips" aria-label="핵심 태그 조합">
+      <span class="chip"><b>SD</b> BT.601 matrix</span>
+      <span class="chip"><b>HD SDR</b> BT.709 primaries + BT.709 matrix</span>
+      <span class="chip"><b>SDR 표시</b> BT.1886 reference EOTF</span>
+      <span class="chip"><b>UHD SDR</b> BT.2020 primaries + BT.2020 matrix</span>
+      <span class="chip"><b>HDR10</b> BT.2020 + ST 2084(PQ) + BT.2020 NCL</span>
+      <span class="chip"><b>HLG</b> BT.2020 + ARIB STD-B67 / BT.2100 HLG</span>
+    </div>
+
+    <div class="note-grid">
+      <article class="note">
+        <h2>색역과 밝기는 다른 축</h2>
+        <p>BT.2020은 넓은 원색과 UHDTV 신호 체계를 정의한다. HDR 밝기 곡선인 PQ/HLG는 BT.2100 또는 ST 2084/ARIB STD-B67 쪽에서 봐야 한다.</p>
+      </article>
+      <article class="note">
+        <h2>BT.2084 표기는 주의</h2>
+        <p>실무 UI에서 “BT.2084”라고 쓰는 경우는 대개 SMPTE ST 2084, 즉 PQ EOTF를 뜻한다. ITU-R HDR 시스템 표준은 BT.2100이다.</p>
+      </article>
+      <article class="note">
+        <h2>해상도만 믿지 않기</h2>
+        <p>SD라서 무조건 BT.601, HD라서 무조건 BT.709라고 단정하면 위험하다. 파일 메타데이터와 제작 조건을 함께 확인해야 한다.</p>
+      </article>
+    </div>
+
+    <section>
+      <div class="section-head">
+        <h2>1. 표준별 정의 범위</h2>
+        <p class="section-hint">최초 표준화 시기순 · 가로 스크롤 가능</p>
+      </div>
+      <div class="table-wrap">
+        <table class="standards-table">
+          <thead>
+            <tr>
+              <th>표준</th>
+              <th>요약 / 주로 정의하는 것</th>
+              <th>Primaries / White</th>
+              <th>Transfer</th>
+              <th>Matrix / YCbCr</th>
+              <th>해상도 / 프레임 / 포맷</th>
+              <th>실무 태그 예</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="std">ITU-R BT.601<small>Rec.601</small><small>표준화: 1982</small></td>
+              <td class="scope">
+                SDTV 디지털 스튜디오 인코딩 표준
+                <span>525/625-line SDTV의 디지털 컴포넌트 신호, 4:2:2/4:4:4 샘플링, Y'CbCr 생성식, 양자화, 코드 범위.</span>
+              </td>
+              <td>
+                <div class="formula">
+                  525-line (NTSC권 60/1.001 field/s 계열):<br>
+                  R (0.640, 0.330)<br>
+                  G (0.290, 0.600)<br>
+                  B (0.150, 0.060)<br>
+                  White D65 (0.3127, 0.3290)
+                </div>
+                <div class="formula">
+                  625-line (PAL/SECAM권 50 field/s 계열):<br>
+                  R (0.630, 0.340)<br>
+                  G (0.310, 0.595)<br>
+                  B (0.155, 0.070)<br>
+                  White D65 (0.3127, 0.3290)
+                </div>
+                <span class="muted">BT.601은 기존 아날로그 SD 방송 계열을 디지털 컴포넌트 신호로 옮기면서 두 색도 관행을 함께 수용한다.</span>
+              </td>
+              <td>
+                SDTV 계열 OETF를 포함하지만, 파일 메타데이터에서는 <span class="mono">bt709</span>,
+                <span class="mono">smpte170m</span>, <span class="mono">bt470bg</span> 등으로 운용되는 경우가 있다.
+              </td>
+              <td>
+                <div class="formula">
+                  K<sub>R</sub>=0.299, K<sub>G</sub>=0.587, K<sub>B</sub>=0.114<br>
+                  Y' = 0.299R' + 0.587G' + 0.114B'<br>
+                  Cb = (B' - Y') / 1.772<br>
+                  Cr = (R' - Y') / 1.402<br>
+                  R' = Y' + 1.402Cr<br>
+                  G' = Y' - 0.344136Cb - 0.714136Cr<br>
+                  B' = Y' + 1.772Cb
+                </div>
+                SD 영상의 대표 Y'CbCr matrix.
+              </td>
+              <td>
+                <div class="spec-groups">
+                  <div class="spec-group">
+                    <b>공간</b>
+                    <div class="tag-list">
+                      <span class="tag">525-line</span>
+                      <span class="tag">625-line</span>
+                      <span class="tag">525: NTSC권</span>
+                      <span class="tag">625: PAL/SECAM권</span>
+                      <span class="tag">720 active Y samples/line</span>
+                      <span class="tag">4:3</span>
+                      <span class="tag">16:9 wide-screen</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>시간</b>
+                    <div class="tag-list">
+                      <span class="tag">60/1.001 field/s</span>
+                      <span class="tag">50 field/s</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>신호 / 샘플링</b>
+                    <div class="tag-list">
+                      <span class="tag">4:2:2 Y'CbCr</span>
+                      <span class="tag">4:4:4 Y'CbCr / R'G'B'</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>비트 / 코딩</b>
+                    <div class="tag-list">
+                      <span class="tag">8 or 10 bit PCM</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">matrix=smpte170m</span>
+                  <span class="tag">matrix=bt470bg</span>
+                  <span class="tag">matrix=bt601</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="std">ITU-R BT.709<small>Rec.709</small><small>표준화: 1990</small></td>
+              <td class="scope">
+                HDTV 제작/교환용 이미지 파라미터
+                <span>HDTV의 RGB 원색, D65 white, OETF, R'G'B'와 Y'CbCr 관계, 양자화, 1920x1080 계열 시스템 파라미터.</span>
+              </td>
+              <td>
+                R (0.640, 0.330)<br>
+                G (0.300, 0.600)<br>
+                B (0.150, 0.060)<br>
+                White D65 (0.3127, 0.3290)
+              </td>
+              <td>
+                BT.709 OETF를 정의한다.
+                <br><span class="muted">SDR 표시 쪽 reference EOTF는 보통 BT.1886/gamma 2.4 맥락과 함께 본다.</span>
+              </td>
+              <td>
+                <div class="formula">
+                  K<sub>R</sub>=0.2126, K<sub>G</sub>=0.7152, K<sub>B</sub>=0.0722<br>
+                  Y' = 0.2126R' + 0.7152G' + 0.0722B'<br>
+                  Cb = (B' - Y') / 1.8556<br>
+                  Cr = (R' - Y') / 1.5748<br>
+                  R' = Y' + 1.5748Cr<br>
+                  G' = Y' - 0.187324Cb - 0.468124Cr<br>
+                  B' = Y' + 1.8556Cb
+                </div>
+                HD SDR의 대표 Y'CbCr matrix.
+              </td>
+              <td>
+                <div class="spec-groups">
+                  <div class="spec-group">
+                    <b>공간</b>
+                    <div class="tag-list">
+                      <span class="tag">1920 x 1080 CIF</span>
+                      <span class="tag">16:9</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>시간</b>
+                    <div class="tag-list">
+                      <span class="tag">60/P, 50/P</span>
+                      <span class="tag">30/P, 25/P, 24/P</span>
+                      <span class="tag">30/PsF, 25/PsF, 24/PsF</span>
+                      <span class="tag">60/I, 50/I</span>
+                      <span class="tag">/1.001 variants</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>신호 / 샘플링</b>
+                    <div class="tag-list">
+                      <span class="tag">R'G'B' or Y'CbCr</span>
+                      <span class="tag">4:2:2 Y'CbCr</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>비트 / 코딩</b>
+                    <div class="tag-list">
+                      <span class="tag">8 or 10 bit/component</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">primaries=bt709</span>
+                  <span class="tag">transfer=bt709</span>
+                  <span class="tag">matrix=bt709</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="std">ITU-R BT.1886<small>Rec.1886</small><small>표준화: 2011-03-08</small></td>
+              <td class="scope">
+                HDTV studio reference display EOTF
+                <span>HDTV 프로그램 제작/교환에서 평판 디스플레이가 따라야 할 기준 EOTF. CRT 기준 표시 특성과 잘 맞도록 설계해 SDR 화면 표현을 일관되게 만든다.</span>
+              </td>
+              <td>
+                <span class="no">정의하지 않음.</span>
+              </td>
+              <td>
+                <span class="yes">Reference EOTF를 정의.</span>
+                <br>단순 gamma 2.4와 비슷하게 운용되지만, 표준식은 디스플레이 black/white luminance를 반영한다.
+              </td>
+              <td>
+                <span class="no">정의하지 않음.</span>
+              </td>
+              <td>
+                <span class="no">정의하지 않음.</span>
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">display EOTF=BT.1886</span>
+                  <span class="tag">SDR gamma 2.4-like</span>
+                  <span class="tag">Rec.709 display</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="std">ITU-R BT.2020<small>Rec.2020</small><small>표준화: 2012</small></td>
+              <td class="scope">
+                UHDTV / wide color gamut 이미지 파라미터
+                <span>UHDTV의 3840x2160, 7680x4320 시스템, 매우 넓은 RGB 원색, D65 white, SDR용 transfer, Y'CbCr 및 R'G'B' 신호 표현.</span>
+              </td>
+              <td>
+                R (0.708, 0.292)<br>
+                G (0.170, 0.797)<br>
+                B (0.131, 0.046)<br>
+                White D65 (0.3127, 0.3290)
+              </td>
+              <td>
+                SDR UHDTV OETF를 정의한다.
+                <br><span class="warn">PQ/HLG HDR은 BT.2020 자체가 아니라 BT.2100에서 다룬다.</span>
+              </td>
+              <td>
+                <div class="formula">
+                  NCL Y'C'BC'R:<br>
+                  K<sub>R</sub>=0.2627, K<sub>G</sub>=0.6780, K<sub>B</sub>=0.0593<br>
+                  Y' = 0.2627R' + 0.6780G' + 0.0593B'<br>
+                  Cb = (B' - Y') / 1.8814<br>
+                  Cr = (R' - Y') / 1.4746<br>
+                  R' = Y' + 1.4746Cr<br>
+                  G' = Y' - 0.164553Cb - 0.571353Cr<br>
+                  B' = Y' + 1.8814Cb
+                </div>
+                <div class="formula">
+                  CL Y'C C'BC C'RC:<br>
+                  Y'C = OETF(0.2627R + 0.6780G + 0.0593B)<br>
+                  C'BC = (B' - Y'C) / (-2NB), NB &lt;= B' - Y'C &lt;= 0<br>
+                  C'BC = (B' - Y'C) / (2PB), 0 &lt; B' - Y'C &lt;= PB<br>
+                  C'RC = (R' - Y'C) / (-2NR), NR &lt;= R' - Y'C &lt;= 0<br>
+                  C'RC = (R' - Y'C) / (2PR), 0 &lt; R' - Y'C &lt;= PR<br>
+                  PB=0.7910, NB=-0.9702, PR=0.4969, NR=-0.8591
+                </div>
+                NCL(non-constant luminance)과 CL(constant luminance) 계열을 구분한다.
+              </td>
+              <td>
+                <div class="spec-groups">
+                  <div class="spec-group">
+                    <b>공간</b>
+                    <div class="tag-list">
+                      <span class="tag">3840 x 2160</span>
+                      <span class="tag">7680 x 4320</span>
+                      <span class="tag">16:9</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>시간</b>
+                    <div class="tag-list">
+                      <span class="tag">120, 120/1.001</span>
+                      <span class="tag">100</span>
+                      <span class="tag">60, 60/1.001</span>
+                      <span class="tag">50</span>
+                      <span class="tag">30, 30/1.001</span>
+                      <span class="tag">25</span>
+                      <span class="tag">24, 24/1.001</span>
+                      <span class="tag">progressive</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>신호 / 샘플링</b>
+                    <div class="tag-list">
+                      <span class="tag">R'G'B'</span>
+                      <span class="tag">Y'C'BC'R</span>
+                      <span class="tag">Y'C C'BC C'RC</span>
+                      <span class="tag">4:4:4 / 4:2:2 / 4:2:0</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>비트 / 코딩</b>
+                    <div class="tag-list">
+                      <span class="tag">10 or 12 bit/component</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">primaries=bt2020</span>
+                  <span class="tag">matrix=bt2020nc</span>
+                  <span class="tag">matrix=bt2020c</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="std">SMPTE ST 2084<small>PQ, 흔히 ST2084</small><small>표준화: 2014-08-16</small></td>
+              <td class="scope">
+                HDR mastering reference display용 PQ EOTF
+                <span>디지털 PQ 신호값을 절대 휘도 cd/m²로 매핑하는 EOTF와 inverse EOTF. 0~10,000 cd/m² 범위의 HDR 계조 표현.</span>
+              </td>
+              <td>
+                <span class="no">정의하지 않음.</span>
+              </td>
+              <td>
+                <span class="yes">PQ EOTF를 정의.</span>
+                <br>절대 휘도 기반, HVS 지각 특성에 맞춘 비선형 곡선.
+              </td>
+              <td>
+                <span class="no">정의하지 않음.</span>
+              </td>
+              <td>
+                <span class="no">정의하지 않음.</span>
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">transfer=smpte2084</span>
+                  <span class="tag">PQ</span>
+                  <span class="tag">HDR10</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="std">ARIB STD-B67<small>HLG</small><small>표준화: 2015-07-03</small></td>
+              <td class="scope">
+                Hybrid Log-Gamma HDR-TV 시스템 파라미터
+                <span>HLG 방식 HDR-TV 제작을 위한 필수 파라미터. OETF로 특징지어지는 colorimetry, signal format, digital representation.</span>
+              </td>
+              <td>
+                R (0.708, 0.292)<br>
+                G (0.170, 0.797)<br>
+                B (0.131, 0.046)<br>
+                White D65 (0.3127, 0.3290)
+              </td>
+              <td>
+                <span class="yes">HLG OETF를 정의.</span>
+                <br>저휘도는 gamma 계열, 고휘도는 log 계열인 hybrid curve.
+              </td>
+              <td>
+                <div class="formula">
+                  Y' = 0.2627R' + 0.6780G' + 0.0593B'<br>
+                  Cb = (B' - Y') / 1.8814<br>
+                  Cr = (R' - Y') / 1.4746<br>
+                  R' = Y' + 1.4746Cr<br>
+                  G' = Y' - 0.164553Cb - 0.571353Cr<br>
+                  B' = Y' + 1.8814Cb
+                </div>
+              </td>
+              <td>
+                <div class="spec-groups">
+                  <div class="spec-group">
+                    <b>공간</b>
+                    <div class="tag-list">
+                      <span class="tag">1920 x 1080</span>
+                      <span class="tag">3840 x 2160</span>
+                      <span class="tag">7680 x 4320</span>
+                      <span class="tag">16:9</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>시간</b>
+                    <div class="tag-list">
+                      <span class="tag">120, 120/1.001</span>
+                      <span class="tag">60, 60/1.001</span>
+                      <span class="tag">progressive</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>신호 / 샘플링</b>
+                    <div class="tag-list">
+                      <span class="tag">R'G'B' or Y'C'BC'R</span>
+                      <span class="tag">4:4:4 / 4:2:2 / 4:2:0</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>비트 / 코딩</b>
+                    <div class="tag-list">
+                      <span class="tag">10 or 12 bit/component</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">transfer=arib-std-b67</span>
+                  <span class="tag">HLG</span>
+                  <span class="tag">Rec.2100 HLG</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="std">ITU-R BT.2100<small>Rec.2100 HDR-TV</small><small>표준화: 2016-07</small></td>
+              <td class="scope">
+                HDR-TV 제작/교환용 이미지 파라미터
+                <span>HDR-TV 시스템 파라미터. PQ와 HLG 두 방식, BT.2020 원색, RGB/Y'CbCr/ICtCp, reference viewing, transfer chain, HDR 신호 표현.</span>
+              </td>
+              <td>
+                R (0.708, 0.292)<br>
+                G (0.170, 0.797)<br>
+                B (0.131, 0.046)<br>
+                White D65 (0.3127, 0.3290)
+              </td>
+              <td>
+                <span class="yes">PQ와 HLG 둘 다 정의.</span>
+                <br>PQ: reference EOTF 중심<br>
+                HLG: OETF/EOTF/OOTF 체계
+              </td>
+              <td>
+                <div class="formula">
+                  Y'CbCr는 BT.2020 NCL 계수 사용:<br>
+                  Y' = 0.2627R' + 0.6780G' + 0.0593B'<br>
+                  Cb = (B' - Y') / 1.8814, Cr = (R' - Y') / 1.4746<br>
+                  R' = Y' + 1.4746Cr<br>
+                  G' = Y' - 0.164553Cb - 0.571353Cr<br>
+                  B' = Y' + 1.8814Cb
+                </div>
+                <div class="formula">
+                  ICtCp 개요:<br>
+                  RGB &rarr; LMS matrix &rarr; PQ/HLG 비선형화 &rarr; I,Ct,Cp matrix<br>
+                  L = 0.3592R + 0.6976G - 0.0358B<br>
+                  M = -0.1922R + 1.1004G + 0.0755B<br>
+                  S = 0.0070R + 0.0749G + 0.8434B<br>
+                  I = 0.5L' + 0.5M'<br>
+                  Ct = 1.61377L' - 3.32349M' + 1.70972S'<br>
+                  Cp = 4.37817L' - 4.24536M' - 0.13281S'
+                </div>
+              </td>
+              <td>
+                <div class="spec-groups">
+                  <div class="spec-group">
+                    <b>공간</b>
+                    <div class="tag-list">
+                      <span class="tag">1920 x 1080</span>
+                      <span class="tag">3840 x 2160</span>
+                      <span class="tag">7680 x 4320</span>
+                      <span class="tag">16:9</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>시간</b>
+                    <div class="tag-list">
+                      <span class="tag">120, 120/1.001</span>
+                      <span class="tag">100</span>
+                      <span class="tag">60, 60/1.001</span>
+                      <span class="tag">50</span>
+                      <span class="tag">30, 30/1.001</span>
+                      <span class="tag">25</span>
+                      <span class="tag">24, 24/1.001</span>
+                      <span class="tag">progressive</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>신호 / 샘플링</b>
+                    <div class="tag-list">
+                      <span class="tag">R'G'B'</span>
+                      <span class="tag">Y'CbCr</span>
+                      <span class="tag">ICtCp</span>
+                      <span class="tag">4:4:4 / 4:2:2 / 4:2:0</span>
+                    </div>
+                  </div>
+                  <div class="spec-group">
+                    <b>비트 / 범위</b>
+                    <div class="tag-list">
+                      <span class="tag">10 or 12 bit/component</span>
+                      <span class="tag">narrow / full range</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">primaries=bt2020</span>
+                  <span class="tag">transfer=smpte2084</span>
+                  <span class="tag">transfer=arib-std-b67</span>
+                  <span class="tag">matrix=bt2020nc</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>2. TV 제작 관점에서 보는 기준</h2>
+        <p class="section-hint">SD / HD / UHD / HDR 제작 기준을 먼저 잡기</p>
+      </div>
+      <p class="section-copy">
+        TV 제작과 프로그램 교환을 표준화하는 기준으로는 주로 ITU-R BT 계열을 보면 된다.
+        SD는 BT.601, HD SDR은 BT.709, UHD/WCG는 BT.2020, HDR-TV 제작은 BT.2100이 중심이고,
+        BT.1886, ST 2084, ARIB STD-B67은 각각 표시 EOTF나 HDR transfer처럼 더 좁은 축을 맡는다.
+      </p>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead>
+            <tr>
+              <th>제작 상황</th>
+              <th>대표 표준</th>
+              <th>보면 되는 의미</th>
+              <th>함께 보는 표준 / 주의점</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="std">SD TV 제작</td>
+              <td>ITU-R BT.601</td>
+              <td>SD 디지털 컴포넌트 비디오의 색, Y'CbCr matrix, 샘플링, 코드 범위.</td>
+              <td>525-line과 625-line 계열의 역사적 색도 차이를 함께 확인한다.</td>
+            </tr>
+            <tr>
+              <td class="std">HD SDR TV 제작</td>
+              <td>ITU-R BT.709</td>
+              <td>HDTV 제작/교환의 기본 색공간, OETF, Y'CbCr matrix, 1080계 시스템 파라미터.</td>
+              <td>SDR 기준 모니터 표시 특성은 보통 BT.1886 또는 gamma 2.4 맥락과 함께 본다.</td>
+            </tr>
+            <tr>
+              <td class="std">UHD SDR / WCG 제작</td>
+              <td>ITU-R BT.2020</td>
+              <td>UHDTV 해상도/프레임, Rec.2020 넓은 원색, RGB/YCbCr 신호 체계.</td>
+              <td>BT.2020 primaries만으로 HDR이라고 판단하지 않는다. HDR 여부는 transfer를 같이 본다.</td>
+            </tr>
+            <tr>
+              <td class="std">HDR-TV 제작</td>
+              <td>ITU-R BT.2100</td>
+              <td>HDR-TV 제작/교환용 이미지 파라미터. PQ와 HLG, BT.2020 원색, Y'CbCr/ICtCp.</td>
+              <td>PQ 곡선은 ST 2084, HLG 핵심 transfer는 ARIB STD-B67과 연결된다.</td>
+            </tr>
+            <tr>
+              <td class="std">SDR 기준 표시</td>
+              <td>ITU-R BT.1886</td>
+              <td>HDTV studio reference display가 따라야 할 SDR reference EOTF.</td>
+              <td>제작 시스템 전체가 아니라 기준 모니터의 표시 밝기 재현을 정의한다.</td>
+            </tr>
+            <tr>
+              <td class="std">HDR PQ 밝기 곡선</td>
+              <td>SMPTE ST 2084</td>
+              <td>PQ 신호값을 절대 휘도 cd/m²로 매핑하는 HDR EOTF.</td>
+              <td>색역, matrix, 해상도/프레임 전체는 BT.2100 또는 BT.2020 쪽에서 본다.</td>
+            </tr>
+            <tr>
+              <td class="std">HDR HLG 방식</td>
+              <td>ARIB STD-B67</td>
+              <td>Hybrid Log-Gamma HDR-TV transfer와 관련 시스템 파라미터.</td>
+              <td>전체 HDR-TV 제작/교환 표준으로는 BT.2100 HLG 맥락에서 함께 본다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>3. BT.601 이전의 TV 표준</h2>
+        <p class="section-hint">아날로그 방송 시스템에서 디지털 스튜디오 표준으로</p>
+      </div>
+      <p class="section-copy">
+        BT.601 이전에도 더 오래된 TV 표준들이 있었다. 다만 그 표준들은 지금의
+        <span class="mono">Y'CbCr</span> 파일 태그나 디지털 스튜디오 샘플링 표준이라기보다,
+        라인 수, 필드 주파수, 동기 신호, 컬러 부반송파, composite video 구조를 정한
+        아날로그 방송 시스템 표준에 가깝다.
+      </p>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead>
+            <tr>
+              <th>시기</th>
+              <th>표준 / 시스템</th>
+              <th>성격</th>
+              <th>주로 정의한 것</th>
+              <th>BT.601과의 관계</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="std">1931</td>
+              <td>CIE 1931 색도 좌표계</td>
+              <td>색을 수학적으로 표시하는 기반 좌표계</td>
+              <td>RGB primaries와 white point를 나타낼 때 쓰는 <span class="mono">(x, y)</span> 색도 좌표.</td>
+              <td>TV 제작 표준은 아니지만, BT.601/709/2020의 원색 좌표를 표현하는 바탕이다.</td>
+            </tr>
+            <tr>
+              <td class="std">1941</td>
+              <td>NTSC 흑백 / 525-line System M</td>
+              <td>미국 525-line 아날로그 흑백 TV 전송 표준</td>
+              <td>525 lines, 30 frames/s, 60 fields/s 계열, 동기 신호, 방송 전송 구조.</td>
+              <td>이후 NTSC 컬러와 BT.601의 525-line SD 계열로 이어지는 역사적 기반이다.</td>
+            </tr>
+            <tr>
+              <td class="std">1953</td>
+              <td>NTSC 컬러</td>
+              <td>흑백 TV와 호환되는 아날로그 컬러 방송 시스템</td>
+              <td>컬러 부반송파, YIQ 계열 색차 신호, 59.94 fields/s 계열 컬러 전송.</td>
+              <td>BT.601의 525-line 계열 원색/매트릭스 관행에 영향을 준 아날로그 컬러 시스템이다.</td>
+            </tr>
+            <tr>
+              <td class="std">1960s</td>
+              <td>PAL</td>
+              <td>625/50 계열 중심의 아날로그 컬러 인코딩 시스템</td>
+              <td>위상 반전 방식의 컬러 부반송파, 색차 신호, PAL B/G/I/N/M 등 지역별 조합.</td>
+              <td>BT.601의 625-line 계열 SD 제작/교환 맥락과 연결된다.</td>
+            </tr>
+            <tr>
+              <td class="std">1960s</td>
+              <td>SECAM</td>
+              <td>프랑스/동유럽권 등에서 쓰인 아날로그 컬러 인코딩 시스템</td>
+              <td>색차 성분을 순차적으로 보내는 FM 부반송파 방식, 625-line 계열 운용.</td>
+              <td>PAL과 함께 BT.601의 625-line SD 계열 색도 관행을 이해하는 배경이 된다.</td>
+            </tr>
+            <tr>
+              <td class="std">1970 계열</td>
+              <td>CCIR / ITU-R BT.470</td>
+              <td>conventional analogue television systems 권고</td>
+              <td>525/625-line 흑백 시스템과 NTSC, PAL, SECAM 컬러 TV 시스템의 주요 파라미터.</td>
+              <td>BT.601이 디지털화하기 전의 아날로그 TV 시스템들을 정리해 보는 기준점이다.</td>
+            </tr>
+            <tr>
+              <td class="std">1982</td>
+              <td>CCIR 601 / ITU-R BT.601</td>
+              <td>SDTV 디지털 스튜디오 컴포넌트 인코딩 표준</td>
+              <td>525/625-line SDTV를 디지털 <span class="mono">Y'CbCr</span>, 4:2:2/4:4:4, 샘플링, 코드 범위로 표현하는 방식.</td>
+              <td>아날로그 NTSC/PAL/SECAM 세계를 디지털 제작/교환 신호로 통일한 다리 역할을 한다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="section-copy">
+        따라서 “BT.601 이전 표준”을 볼 때는 NTSC/PAL/SECAM/BT.470을 먼저 떠올리면 된다.
+        BT.601은 이 아날로그 SD 방송 세계를 그대로 composite로 보존한 표준이 아니라,
+        방송 제작과 국제 프로그램 교환을 위해 디지털 컴포넌트 신호로 다시 정리한 표준이다.
+      </p>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>4. “정의 항목”으로 다시 보기</h2>
+        <p class="section-hint">표준 이름을 외우기보다 열을 나눠 확인</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead>
+            <tr>
+              <th>확인 항목</th>
+              <th>BT.1886</th>
+              <th>BT.601</th>
+              <th>BT.709</th>
+              <th>BT.2020</th>
+              <th>ST 2084</th>
+              <th>BT.2100</th>
+              <th>ARIB STD-B67</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="std">Color primaries</td>
+              <td><span class="no">정의하지 않음.</span></td>
+              <td>
+                525: R(.640,.330) G(.290,.600) B(.150,.060)<br>
+                625: R(.630,.340) G(.310,.595) B(.155,.070)
+              </td>
+              <td>R(.640,.330) G(.300,.600) B(.150,.060)</td>
+              <td>R(.708,.292) G(.170,.797) B(.131,.046)</td>
+              <td><span class="no">정의하지 않음.</span></td>
+              <td>R(.708,.292) G(.170,.797) B(.131,.046)</td>
+              <td>R(.708,.292) G(.170,.797) B(.131,.046)</td>
+            </tr>
+            <tr>
+              <td class="std">White point</td>
+              <td><span class="no">정의하지 않음.</span></td>
+              <td>D65 (.3127,.3290)</td>
+              <td>D65 (.3127,.3290)</td>
+              <td>D65 (.3127,.3290)</td>
+              <td><span class="no">정의하지 않음.</span></td>
+              <td>D65 (.3127,.3290)</td>
+              <td>D65 (.3127,.3290)</td>
+            </tr>
+            <tr>
+              <td class="std">Transfer</td>
+              <td><span class="yes">Reference display EOTF</span></td>
+              <td>SDTV OETF 맥락</td>
+              <td>BT.709 OETF</td>
+              <td>SDR UHDTV OETF</td>
+              <td><span class="yes">PQ EOTF</span></td>
+              <td><span class="yes">PQ + HLG</span></td>
+              <td><span class="yes">HLG OETF</span></td>
+            </tr>
+            <tr>
+              <td class="std">Matrix coefficients</td>
+              <td><span class="no">정의하지 않음.</span></td>
+              <td>Kᵣ=.299, Kᵦ=.114</td>
+              <td>Kᵣ=.2126, Kᵦ=.0722</td>
+              <td>Kᵣ=.2627, Kᵦ=.0593</td>
+              <td><span class="no">정의하지 않음.</span></td>
+              <td>BT.2020 계수, ICtCp 포함</td>
+              <td>BT.2020 계열로 운용</td>
+            </tr>
+            <tr>
+              <td class="std">Resolution / system</td>
+              <td>HDTV studio reference display</td>
+              <td>SD 525/625</td>
+              <td>HDTV</td>
+              <td>UHDTV</td>
+              <td><span class="no">정의하지 않음.</span></td>
+              <td>HDR-TV HD/UHD</td>
+              <td>HLG HDR-TV</td>
+            </tr>
+            <tr>
+              <td class="std">Dynamic range role</td>
+              <td>SDR display EOTF</td>
+              <td>SDR</td>
+              <td>SDR</td>
+              <td>SDR/WCG 컨테이너</td>
+              <td>HDR PQ 밝기 곡선</td>
+              <td>HDR 시스템</td>
+              <td>HDR HLG 방식</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>5. 파일 메타데이터 조합 예시</h2>
+        <p class="section-hint">ffprobe / MediaInfo / NLE 설정에서 자주 보이는 조합</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead>
+            <tr>
+              <th>콘텐츠 유형</th>
+              <th>color_primaries</th>
+              <th>color_transfer</th>
+              <th>colorspace / matrix</th>
+              <th>해석</th>
+              <th>주의점</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="std">Rec.709 SDR 표시 기준</td>
+              <td><span class="mono">bt709</span></td>
+              <td><span class="mono">bt709</span> 또는 SDR 계열</td>
+              <td><span class="mono">bt709</span></td>
+              <td>파일 신호는 Rec.709로 태그되고, 기준 모니터/뷰어는 BT.1886 EOTF로 표시한다고 보는 조합.</td>
+              <td>BT.1886은 보통 비트스트림 태그가 아니라 표시 장치의 reference EOTF 설정이다.</td>
+            </tr>
+            <tr>
+              <td class="std">SD SDR</td>
+              <td><span class="mono">smpte170m</span> / <span class="mono">bt470bg</span></td>
+              <td><span class="mono">smpte170m</span> / <span class="mono">bt709</span> 등</td>
+              <td><span class="mono">smpte170m</span> / <span class="mono">bt470bg</span></td>
+              <td>BT.601 계열 SD Y'CbCr</td>
+              <td>NTSC/PAL 계열과 실제 캡처 조건 확인.</td>
+            </tr>
+            <tr>
+              <td class="std">HD SDR</td>
+              <td><span class="mono">bt709</span></td>
+              <td><span class="mono">bt709</span></td>
+              <td><span class="mono">bt709</span></td>
+              <td>일반 Rec.709 SDR HD</td>
+              <td>표시는 BT.1886/gamma 2.4 환경과 연결되는 경우가 많다.</td>
+            </tr>
+            <tr>
+              <td class="std">UHD SDR WCG</td>
+              <td><span class="mono">bt2020</span></td>
+              <td><span class="mono">bt709</span> 또는 SDR 계열</td>
+              <td><span class="mono">bt2020nc</span></td>
+              <td>Rec.2020 색역을 쓰는 SDR/UHD 신호</td>
+              <td>BT.2020 primaries만으로 HDR이라고 보면 안 된다.</td>
+            </tr>
+            <tr>
+              <td class="std">HDR10 / PQ</td>
+              <td><span class="mono">bt2020</span></td>
+              <td><span class="mono">smpte2084</span></td>
+              <td><span class="mono">bt2020nc</span></td>
+              <td>BT.2100 PQ 계열 HDR. 보통 HDR10에서는 ST 2086, MaxCLL/MaxFALL metadata가 추가된다.</td>
+              <td>PQ는 절대 휘도라 SDR로 변환하려면 tone mapping이 필요하다.</td>
+            </tr>
+            <tr>
+              <td class="std">HLG HDR</td>
+              <td><span class="mono">bt2020</span></td>
+              <td><span class="mono">arib-std-b67</span></td>
+              <td><span class="mono">bt2020nc</span></td>
+              <td>BT.2100 HLG / ARIB STD-B67 계열 HDR</td>
+              <td>PQ와 달리 scene-referred 성격과 방송 호환성을 고려한 방식이다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>6. 흔한 혼동 정리</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead>
+            <tr>
+              <th>혼동</th>
+              <th>정리</th>
+              <th>실무 판단</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="std">BT.2020 = HDR?</td>
+              <td>아니다. BT.2020은 UHD/WCG 원색과 신호 체계를 정의한다. HDR transfer는 BT.2100의 PQ/HLG를 봐야 한다.</td>
+              <td><span class="mono">primaries=bt2020</span>만 보지 말고 <span class="mono">transfer</span>를 같이 확인.</td>
+            </tr>
+            <tr>
+              <td class="std">BT.2084?</td>
+              <td>대개 잘못 줄여 부른 표현이다. 표준명은 SMPTE ST 2084이고, PQ EOTF를 뜻한다.</td>
+              <td>파일 태그는 보통 <span class="mono">smpte2084</span>. ITU-R HDR 시스템은 BT.2100.</td>
+            </tr>
+            <tr>
+              <td class="std">BT.709 = sRGB?</td>
+              <td>원색과 D65 white는 같지만, 사용 맥락과 transfer, range, Y'CbCr matrix는 다르다.</td>
+              <td>이미지/웹 RGB는 sRGB, 방송/영상 신호는 BT.709 메타데이터와 range까지 확인.</td>
+            </tr>
+            <tr>
+              <td class="std">BT.1886 = 파일 transfer tag?</td>
+              <td>대개 아니다. BT.1886은 HDTV studio reference display가 따라야 할 EOTF다.</td>
+              <td>파일은 보통 <span class="mono">transfer=bt709</span>로 남고, 모니터링/컬러 매니지먼트에서 BT.1886 또는 gamma 2.4 계열을 선택한다.</td>
+            </tr>
+            <tr>
+              <td class="std">해상도만으로 matrix 결정?</td>
+              <td>전통적으로 SD는 BT.601, HD는 BT.709, UHD는 BT.2020이 흔하지만 예외가 있다.</td>
+              <td>업스케일 SD, 편집본, 잘못 태그된 파일은 반드시 메타데이터와 눈검사를 함께 한다.</td>
+            </tr>
+            <tr>
+              <td class="std">HLG = ARIB STD-B67만 보면 끝?</td>
+              <td>ARIB STD-B67은 HLG의 핵심 파라미터를 정의했고, BT.2100은 HLG를 HDR-TV 시스템 안에 통합한다.</td>
+              <td>NLE에서는 Rec.2100 HLG, 파일 태그에서는 <span class="mono">arib-std-b67</span>로 보일 수 있다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>7. HDR 메타데이터 표준</h2>
+        <p class="section-hint">정적 / 동적 / 전달 방식 분리</p>
+      </div>
+      <p class="section-copy">
+        BT.2100, ST 2084, ARIB STD-B67은 HDR 신호와 transfer를 정의하는 표준이고,
+        ST 2086, CTA-861.3, ST 2094 계열은 HDR 메타데이터를 정의하거나 전달하는 표준이다.
+        실제 파일에서는 이 메타데이터가 코덱 SEI, HDMI InfoFrame, 컨테이너 박스, Dolby Vision RPU 같은 서로 다른 위치에 실릴 수 있다.
+      </p>
+      <div class="table-wrap">
+        <table class="compact">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>표준 / 규격</th>
+              <th>정의하는 메타데이터</th>
+              <th>주로 보이는 위치</th>
+              <th>대표 포맷 / 실무 메모</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="std">정적 메타데이터</td>
+              <td>SMPTE ST 2086</td>
+              <td>
+                Mastering Display Color Volume. 마스터링 디스플레이의 RGB primaries,
+                white point, minimum/maximum luminance.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">HEVC SEI</span>
+                  <span class="tag">MP4/MOV metadata</span>
+                  <span class="tag">MKV metadata</span>
+                </div>
+              </td>
+              <td>HDR10에서 가장 자주 보이는 정적 mastering display metadata.</td>
+            </tr>
+            <tr>
+              <td class="std">정적 메타데이터 / HDMI</td>
+              <td>CTA-861.3 / CEA-861.3</td>
+              <td>
+                HDR Static Metadata Extension. EOTF capability, static metadata descriptor,
+                HDR Static Metadata InfoFrame, EDID CTA data block.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">HDMI InfoFrame</span>
+                  <span class="tag">EDID CTA block</span>
+                </div>
+              </td>
+              <td>TV가 어떤 HDR EOTF와 정적 메타데이터를 받을 수 있는지 신호화하는 데 중요하다.</td>
+            </tr>
+            <tr>
+              <td class="std">콘텐츠 밝기 정보</td>
+              <td>MaxCLL / MaxFALL</td>
+              <td>
+                Maximum Content Light Level, Maximum Frame-Average Light Level.
+                전체 콘텐츠의 최대 픽셀 밝기와 최대 프레임 평균 밝기.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">HDR10 static metadata</span>
+                  <span class="tag">Content light level SEI</span>
+                </div>
+              </td>
+              <td>톤매핑 힌트로 자주 쓰이지만, 값이 없거나 부정확한 파일도 많다.</td>
+            </tr>
+            <tr>
+              <td class="std">코덱 내 전달</td>
+              <td>ITU-T H.265 / ISO/IEC 23008-2 HEVC SEI</td>
+              <td>
+                Mastering display colour volume SEI, Content light level information SEI 등
+                HDR 메타데이터를 비트스트림 안에 싣는 메시지 구조.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">HEVC elementary stream</span>
+                  <span class="tag">SEI NAL unit</span>
+                </div>
+              </td>
+              <td>ST 2086/MaxCLL/MaxFALL 값을 실제 H.265 스트림에 실을 때의 대표 전달 경로.</td>
+            </tr>
+            <tr>
+              <td class="std">동적 메타데이터</td>
+              <td>SMPTE ST 2094 suite</td>
+              <td>
+                Dynamic Metadata for Color Volume Transform. 장면/프레임별 color volume transform과
+                display mapping에 필요한 공통 구성요소와 application별 데이터.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">SEI</span>
+                  <span class="tag">container metadata</span>
+                  <span class="tag">broadcast signaling</span>
+                </div>
+              </td>
+              <td>ST 2094-1은 core components, ST 2094-10/20/30/40 등은 application별 정의.</td>
+            </tr>
+            <tr>
+              <td class="std">HDR10+</td>
+              <td>SMPTE ST 2094-40</td>
+              <td>
+                Dynamic Metadata for Color Volume Transform Application #4.
+                HDR10+에서 쓰이는 장면/프레임 단위 동적 메타데이터.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">HEVC SEI</span>
+                  <span class="tag">AV1 metadata</span>
+                  <span class="tag">HDR10+ JSON/tooling</span>
+                </div>
+              </td>
+              <td>MediaInfo에서 <span class="mono">SMPTE ST 2094 App 4</span>처럼 보이는 경우가 많다.</td>
+            </tr>
+            <tr>
+              <td class="std">Dolby Vision 관련</td>
+              <td>Dolby Vision metadata / RPU, ST 2094-10, ETSI TS 103 572</td>
+              <td>
+                Dolby Vision의 global/shot/frame 기반 metadata와 RPU.
+                공개 표준으로는 ST 2094-10 Application #1 및 DVB 전달 규격인 ETSI TS 103 572와 연결된다.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">Dolby Vision RPU</span>
+                  <span class="tag">HEVC NAL unit</span>
+                  <span class="tag">Dolby XML</span>
+                </div>
+              </td>
+              <td>실제 Dolby Vision 프로파일과 metadata 해석은 Dolby proprietary 규격 영역이 크다.</td>
+            </tr>
+            <tr>
+              <td class="std">HLG</td>
+              <td>ARIB STD-B67 / BT.2100 HLG</td>
+              <td>
+                HLG 자체는 HDR10식 mastering display metadata나 동적 metadata에 의존하지 않는 방송 친화 HDR 방식.
+              </td>
+              <td>
+                <div class="tag-list">
+                  <span class="tag">transfer=arib-std-b67</span>
+                  <span class="tag">Rec.2100 HLG signaling</span>
+                </div>
+              </td>
+              <td>HLG 파일에 ST 2086/HDR10 metadata가 붙어 있으면 제작/인코딩 의도를 따로 확인해야 한다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="section-copy">
+        실무적으로는 HDR10이면 <span class="mono">bt2020 + smpte2084 + bt2020nc</span> 색 신호 태그에
+        ST 2086과 MaxCLL/MaxFALL이 붙는 경우가 많고, HDR10+는 여기에 ST 2094-40 동적 메타데이터가 추가된다.
+        Dolby Vision은 RPU metadata를 따로 보며, HLG는 보통 정적 metadata보다 transfer signaling이 더 중요하다.
+      </p>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>공식 자료</h2>
+      </div>
+      <ul class="source-list">
+        <li>FCC <a href="https://docs.fcc.gov/public/attachments/DOC-308657A1.pdf">Seventh Annual Report</a> - 1941년 NTSC 흑백 TV transmission standards 채택 배경과 525 lines / 30 frames/s 언급.</li>
+        <li>SMPTE Journal <a href="https://journal.smpte.org/periodicals/SMPTE%20Journal/86/11/7/">U.S. Color Television Fundamentals: A Review</a> - 1953년 FCC의 NTSC compatible color television standards 승인 배경.</li>
+        <li>ITU-R <a href="https://www.itu.int/rec/R-REC-BT.470-6-199811-S/en">BT.470-6</a> - Conventional television systems. 525/625-line 및 NTSC/PAL/SECAM 계열 아날로그 TV 시스템 정리.</li>
+        <li>ITU-R <a href="https://www.itu.int/rec/R-REC-BT.601/">BT.601</a> - SDTV studio encoding parameters. 최초 1982.</li>
+        <li>ITU-R <a href="https://www.itu.int/rec/R-REC-BT.709/en">BT.709</a> - HDTV parameter values. 최초 1990.</li>
+        <li>ITU-R <a href="https://www.itu.int/rec/R-REC-BT.1886/">BT.1886</a> - Reference EOTF for flat panel displays used in HDTV studio production. 2011-03-08 승인.</li>
+        <li>ITU-R <a href="https://www.itu.int/rec/R-REC-BT.2020/en">BT.2020</a> - UHDTV parameter values. 최초 2012.</li>
+        <li>SMPTE <a href="https://pub.smpte.org/latest/st2084/st2084-2014.pdf">ST 2084</a> - HDR mastering reference display EOTF. 2014-08-16 승인.</li>
+        <li>ARIB <a href="https://www.arib.or.jp/english/std_tr/broadcasting/desc/std-b67.html">STD-B67 overview</a> 및 <a href="https://www.arib.or.jp/english/html/overview/doc/2-STD-B67v2_0.pdf">STD-B67 v2.0 PDF</a> - HLG HDR-TV parameters. 2015-07-03 제정.</li>
+        <li>ITU-R <a href="https://www.itu.int/rec/R-REC-BT.2100">BT.2100</a> - HDR-TV image parameter values. 최초 BT.2100-0 (07/2016), 현행판은 BT.2100-3 (02/2025).</li>
+        <li>SMPTE <a href="https://pub.smpte.org/pub/st2086/st2086-2018.pdf">ST 2086</a> - Mastering Display Color Volume metadata.</li>
+        <li>CTA <a href="https://www.cta.tech/standards/cta-8613-a/">CTA-861.3-A</a> - HDR Static Metadata Extensions.</li>
+        <li>ITU-T <a href="https://www.itu.int/rec/T-REC-H.265">H.265 / HEVC</a> - SEI carriage for mastering display colour volume and content light level metadata.</li>
+        <li>SMPTE <a href="https://www.smpte.org/standards/document-index/ST">ST 2094 suite</a> 및 <a href="https://pub.smpte.org/doc/st2094-1/20160518-pub/st2094-1-2016.pdf">ST 2094-1</a> - Dynamic Metadata for Color Volume Transform.</li>
+        <li>ETSI <a href="https://www.etsi.org/deliver/etsi_TS/103500_103599/103572/01.02.01_60/ts_103572v010201p.pdf">TS 103 572</a> - HDR signalling and carriage of dynamic metadata for Colour Volume Transform Application #1.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

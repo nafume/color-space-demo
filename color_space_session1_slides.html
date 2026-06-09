@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Color Space Seminar - Session 1</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/sunn-us/SUIT/fonts/static/woff2/SUIT.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* === THEME: SPECTRAL OBSERVATORY === */
+    :root {
+      --ground: #101214;
+      --ground-2: #171a1d;
+      --panel: rgba(22, 25, 28, .76);
+      --ink: #f4efe8;
+      --muted: #a89f92;
+      --quiet: #6f756f;
+      --cyan: #53d7ff;
+      --green: #6df0a4;
+      --red: #ff6a5f;
+      --amber: #ffd06a;
+      --violet: #8a7dff;
+      --line: rgba(244, 239, 232, .16);
+      --grid: rgba(244, 239, 232, .055);
+      --font-display: "SUIT", "Pretendard", sans-serif;
+      --font-body: "Pretendard", sans-serif;
+      --font-mono: "IBM Plex Mono", monospace;
+      --title-size: clamp(1.5rem, 5vw, 4rem);
+      --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+      --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+      --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+      --small-size: clamp(0.65rem, 1vw, 0.875rem);
+      --slide-padding: clamp(1rem, 4vw, 4rem);
+      --content-gap: clamp(0.5rem, 2vw, 2rem);
+      --element-gap: clamp(0.25rem, 1vw, 1rem);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --duration-normal: 0.7s;
+    }
+
+    /* === RESET === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ===========================================
+       VIEWPORT FITTING: MANDATORY BASE STYLES
+       Include this ENTIRE file in every presentation.
+       These styles ensure slides fit exactly in the viewport.
+       =========================================== */
+
+    /* 1. Lock html/body to viewport */
+    html, body {
+        height: 100%;
+        overflow-x: hidden;
+    }
+
+    html {
+        scroll-snap-type: y mandatory;
+        scroll-behavior: smooth;
+    }
+
+    /* 2. Each slide = exact viewport height */
+    .slide {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile browsers */
+        overflow: hidden; /* CRITICAL: Prevent ANY overflow */
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    /* 3. Content container with flex for centering */
+    .slide-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        max-height: 100%;
+        overflow: hidden; /* Double-protection against overflow */
+        padding: var(--slide-padding);
+    }
+
+    /* 4. ALL typography uses clamp() for responsive scaling */
+    :root {
+        /* Titles scale from mobile to desktop */
+        --title-size: clamp(1.5rem, 5vw, 4rem);
+        --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+        --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+
+        /* Body text */
+        --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+        --small-size: clamp(0.65rem, 1vw, 0.875rem);
+
+        /* Spacing scales with viewport */
+        --slide-padding: clamp(1rem, 4vw, 4rem);
+        --content-gap: clamp(0.5rem, 2vw, 2rem);
+        --element-gap: clamp(0.25rem, 1vw, 1rem);
+    }
+
+    /* 5. Cards/containers use viewport-relative max sizes */
+    .card, .container, .content-box {
+        max-width: min(90vw, 1000px);
+        max-height: min(80vh, 700px);
+    }
+
+    /* 6. Lists auto-scale with viewport */
+    .feature-list, .bullet-list {
+        gap: clamp(0.4rem, 1vh, 1rem);
+    }
+
+    .feature-list li, .bullet-list li {
+        font-size: var(--body-size);
+        line-height: 1.4;
+    }
+
+    /* 7. Grids adapt to available space */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+        gap: clamp(0.5rem, 1.5vw, 1rem);
+    }
+
+    /* 8. Images constrained to viewport */
+    img, .image-container {
+        max-width: 100%;
+        max-height: min(50vh, 400px);
+        object-fit: contain;
+    }
+
+    /* ===========================================
+       RESPONSIVE BREAKPOINTS
+       Aggressive scaling for smaller viewports
+       =========================================== */
+
+    /* Short viewports (< 700px height) */
+    @media (max-height: 700px) {
+        :root {
+            --slide-padding: clamp(0.75rem, 3vw, 2rem);
+            --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+            --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+            --h2-size: clamp(1rem, 3vw, 1.75rem);
+        }
+    }
+
+    /* Very short viewports (< 600px height) */
+    @media (max-height: 600px) {
+        :root {
+            --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+            --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+            --title-size: clamp(1.1rem, 4vw, 2rem);
+            --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+        }
+
+        /* Hide non-essential elements */
+        .nav-dots, .keyboard-hint, .decorative {
+            display: none;
+        }
+    }
+
+    /* Extremely short (landscape phones, < 500px height) */
+    @media (max-height: 500px) {
+        :root {
+            --slide-padding: clamp(0.4rem, 2vw, 1rem);
+            --title-size: clamp(1rem, 3.5vw, 1.5rem);
+            --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+            --body-size: clamp(0.65rem, 1vw, 0.85rem);
+        }
+    }
+
+    /* Narrow viewports (< 600px width) */
+    @media (max-width: 600px) {
+        :root {
+            --title-size: clamp(1.25rem, 7vw, 2.5rem);
+        }
+
+        /* Stack grids vertically */
+        .grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* ===========================================
+       REDUCED MOTION
+       Respect user preferences
+       =========================================== */
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.2s !important;
+        }
+
+        html {
+            scroll-behavior: auto;
+        }
+    }
+
+    /* === GLOBAL SLIDE SURFACE === */
+    body {
+      font-family: var(--font-body);
+      background: var(--ground);
+      color: var(--ink);
+    }
+
+    .slide {
+      background:
+        radial-gradient(circle at 72% 32%, rgba(83, 215, 255, .16), transparent 27%),
+        radial-gradient(circle at 17% 78%, rgba(255, 106, 95, .14), transparent 30%),
+        linear-gradient(135deg, #0d0f11, #181d22 60%, #0f1114);
+      color: var(--ink);
+    }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: clamp(28px, 4vw, 64px) clamp(28px, 4vw, 64px);
+      mask-image: radial-gradient(circle at 58% 42%, black, transparent 75%);
+      pointer-events: none;
+    }
+
+    .slide::after {
+      content: attr(data-index);
+      position: absolute;
+      top: var(--slide-padding);
+      left: var(--slide-padding);
+      font-family: var(--font-mono);
+      font-size: clamp(0.65rem, 1vw, 0.9rem);
+      color: rgba(244, 239, 232, .38);
+      letter-spacing: .12em;
+    }
+
+    /* === NAVIGATION UI === */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: clamp(0.12rem, .35vh, .22rem);
+      background: linear-gradient(90deg, var(--red), var(--amber), var(--green), var(--cyan));
+      z-index: 1000;
+      transition: width .2s linear;
+    }
+
+    .nav-dots {
+      position: fixed;
+      right: clamp(0.8rem, 2vw, 1.4rem);
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 900;
+      display: grid;
+      gap: clamp(0.25rem, .7vh, .45rem);
+    }
+
+    .nav-dot {
+      width: clamp(0.42rem, .8vw, .6rem);
+      height: clamp(0.42rem, .8vw, .6rem);
+      border-radius: 999px;
+      border: 1px solid rgba(244, 239, 232, .35);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .nav-dot.active {
+      background: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 clamp(0.6rem, 1vw, 1rem) rgba(83, 215, 255, .55);
+    }
+
+    .keyboard-hint {
+      position: fixed;
+      left: var(--slide-padding);
+      bottom: clamp(0.5rem, 1.4vh, 1rem);
+      z-index: 900;
+      font-family: var(--font-mono);
+      color: rgba(244, 239, 232, .38);
+      font-size: clamp(0.62rem, .9vw, .78rem);
+    }
+
+    /* === TYPOGRAPHY === */
+    h1, h2, h3 {
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.3rem, 7vw, 6.7rem);
+      line-height: .9;
+      max-width: 10ch;
+      font-weight: 800;
+    }
+
+    h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 5vw, 4.8rem);
+      line-height: .98;
+      max-width: 14ch;
+      font-weight: 700;
+    }
+
+    h3 {
+      font-size: var(--h3-size);
+      line-height: 1.08;
+      font-weight: 700;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: var(--body-size);
+      line-height: 1.58;
+      max-width: 60ch;
+    }
+
+    .kicker {
+      font-family: var(--font-mono);
+      font-size: clamp(0.65rem, 1.05vw, 0.9rem);
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+      color: var(--green);
+    }
+
+    /* === ANIMATIONS === */
+    .reveal {
+      opacity: 0;
+      transform: translateY(clamp(1rem, 3vh, 2rem));
+      transition:
+        opacity var(--duration-normal) var(--ease-out-expo),
+        transform var(--duration-normal) var(--ease-out-expo);
+    }
+
+    .slide.visible .reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal:nth-child(1) { transition-delay: .08s; }
+    .reveal:nth-child(2) { transition-delay: .16s; }
+    .reveal:nth-child(3) { transition-delay: .24s; }
+    .reveal:nth-child(4) { transition-delay: .32s; }
+    .reveal:nth-child(5) { transition-delay: .4s; }
+    .reveal:nth-child(6) { transition-delay: .48s; }
+
+    /* === TITLE SLIDE === */
+    .title-layout {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, .9fr);
+      gap: clamp(1rem, 4vw, 4rem);
+      align-items: center;
+      max-height: 100%;
+      overflow: hidden;
+      padding: var(--slide-padding);
+    }
+
+    .title-copy {
+      display: grid;
+      gap: clamp(0.8rem, 2.4vh, 1.6rem);
+      align-content: center;
+      max-height: 100%;
+    }
+
+    .diagram-card {
+      position: relative;
+      border: 1px solid var(--line);
+      background: rgba(16, 18, 20, .76);
+      padding: clamp(0.5rem, 1.8vw, 1.2rem);
+      box-shadow: 0 0 clamp(2rem, 8vw, 6rem) rgba(83, 215, 255, .12);
+      max-height: min(68vh, 560px);
+      overflow: hidden;
+    }
+
+    .diagram-card img {
+      display: block;
+      width: 100%;
+      max-height: min(50vh, 400px);
+      object-fit: contain;
+      filter: saturate(1.04) contrast(1.03);
+    }
+
+    .diagram-card::before,
+    .diagram-card::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(244, 239, 232, .35);
+      width: clamp(1rem, 2vw, 1.8rem);
+      height: clamp(1rem, 2vw, 1.8rem);
+      pointer-events: none;
+    }
+
+    .diagram-card::before {
+      top: clamp(0.5rem, 1vw, .8rem);
+      left: clamp(0.5rem, 1vw, .8rem);
+      border-right: 0;
+      border-bottom: 0;
+    }
+
+    .diagram-card::after {
+      right: clamp(0.5rem, 1vw, .8rem);
+      bottom: clamp(0.5rem, 1vw, .8rem);
+      border-left: 0;
+      border-top: 0;
+    }
+
+    .caption {
+      margin-top: clamp(0.45rem, 1vh, .7rem);
+      font-family: var(--font-mono);
+      font-size: clamp(0.58rem, .9vw, .78rem);
+      color: rgba(244, 239, 232, .55);
+      line-height: 1.35;
+    }
+
+    /* === STANDARD LAYOUTS === */
+    .split {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr);
+      align-items: center;
+      gap: clamp(1rem, 4vw, 4rem);
+      padding: var(--slide-padding);
+      max-height: 100%;
+      overflow: hidden;
+    }
+
+    .stack {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: var(--content-gap);
+      max-height: 100%;
+      overflow: hidden;
+    }
+
+    .bullet-list {
+      display: grid;
+      list-style: none;
+      max-width: min(62vw, 760px);
+    }
+
+    .bullet-list li {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: clamp(0.45rem, 1vw, .8rem);
+      align-items: start;
+      color: var(--ink);
+    }
+
+    .bullet-list li::before {
+      content: "";
+      width: clamp(0.45rem, .8vw, .62rem);
+      height: clamp(0.45rem, .8vw, .62rem);
+      border-radius: 50%;
+      margin-top: clamp(0.25rem, .55vh, .4rem);
+      background: var(--cyan);
+      box-shadow: 0 0 clamp(0.5rem, 1vw, .8rem) rgba(83, 215, 255, .45);
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: clamp(0.8rem, 2vw, 1.5rem);
+      max-height: min(72vh, 620px);
+      overflow: hidden;
+    }
+
+    .formula {
+      font-family: var(--font-mono);
+      font-size: clamp(0.72rem, 1.35vw, 1.1rem);
+      line-height: 1.7;
+      color: var(--green);
+      white-space: pre-line;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: clamp(0.4rem, .9vw, .7rem);
+      margin-top: clamp(0.4rem, 1.2vh, .8rem);
+    }
+
+    .chip {
+      font-family: var(--font-mono);
+      font-size: clamp(0.58rem, .95vw, .78rem);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      background: rgba(244, 239, 232, .055);
+      padding: clamp(0.3rem, .8vw, .5rem) clamp(0.42rem, 1vw, .75rem);
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(0.5rem, 1.4vw, 1rem);
+      max-height: min(66vh, 560px);
+    }
+
+    .node {
+      border-top: 2px solid var(--cyan);
+      background: rgba(244, 239, 232, .045);
+      padding: clamp(0.65rem, 1.5vw, 1rem);
+      min-height: clamp(6rem, 18vh, 10rem);
+      display: grid;
+      align-content: start;
+      gap: clamp(0.3rem, .8vh, .6rem);
+    }
+
+    .node strong {
+      font-family: var(--font-display);
+      font-size: clamp(1.1rem, 2.4vw, 2rem);
+      line-height: 1;
+      color: var(--ink);
+    }
+
+    .node span {
+      font-size: var(--small-size);
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .two-up {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(0.6rem, 1.6vw, 1.2rem);
+      max-height: min(68vh, 580px);
+    }
+
+    .mini-card {
+      border: 1px solid var(--line);
+      background: rgba(244, 239, 232, .045);
+      padding: clamp(0.7rem, 1.6vw, 1.1rem);
+      display: grid;
+      gap: clamp(0.35rem, .9vh, .6rem);
+    }
+
+    .mini-card h3 {
+      font-family: var(--font-display);
+      color: var(--ink);
+    }
+
+    .mini-card p {
+      font-size: clamp(0.68rem, 1.15vw, .92rem);
+    }
+
+    .large-number {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 18vw, 14rem);
+      line-height: .65;
+      color: rgba(244, 239, 232, .065);
+      position: absolute;
+      right: clamp(1rem, 5vw, 4rem);
+      bottom: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* === SPECIAL VISUALS === */
+    .spectral-orbit {
+      width: min(34vw, 430px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      position: relative;
+      justify-self: center;
+      animation: slow-drift 7s ease-in-out infinite alternate;
+    }
+
+    .spectral-orbit::before {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      background: conic-gradient(from 210deg, var(--red), var(--amber), var(--green), var(--cyan), var(--violet), var(--red));
+      clip-path: polygon(50% 5%, 87% 25%, 78% 70%, 42% 92%, 9% 66%, 16% 22%);
+      opacity: .84;
+    }
+
+    .pipeline {
+      display: grid;
+      gap: clamp(0.45rem, 1vh, .75rem);
+      font-family: var(--font-mono);
+      font-size: clamp(0.7rem, 1.1vw, .95rem);
+    }
+
+    .step {
+      border-left: 2px solid var(--green);
+      background: rgba(109, 240, 164, .055);
+      padding: clamp(0.45rem, 1.2vw, .8rem) clamp(0.6rem, 1.4vw, 1rem);
+    }
+
+    /* === INTERACTIVE COLOR SPACE COMPARISON === */
+    .color-demo {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+      gap: clamp(1rem, 3vw, 2.6rem);
+      align-items: center;
+      padding: var(--slide-padding);
+      max-height: 100%;
+      overflow: hidden;
+    }
+
+    .demo-controls {
+      display: grid;
+      gap: clamp(0.55rem, 1.4vh, .9rem);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: clamp(0.75rem, 1.8vw, 1.25rem);
+      max-height: min(76vh, 620px);
+      overflow: hidden;
+    }
+
+    .rgb-row {
+      display: grid;
+      grid-template-columns: clamp(1.4rem, 3vw, 2rem) minmax(0, 1fr) clamp(2.5rem, 5vw, 3.4rem);
+      gap: clamp(0.45rem, 1vw, .75rem);
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: clamp(0.68rem, 1vw, .86rem);
+      color: var(--ink);
+    }
+
+    .rgb-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--cyan);
+    }
+
+    .rgb-value {
+      color: var(--green);
+      text-align: right;
+    }
+
+    .select-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(0.5rem, 1.2vw, .9rem);
+    }
+
+    .select-group {
+      display: grid;
+      gap: clamp(0.3rem, .7vh, .45rem);
+      font-family: var(--font-mono);
+      font-size: clamp(0.62rem, .92vw, .78rem);
+      color: var(--muted);
+    }
+
+    .select-group select {
+      width: 100%;
+      color: var(--ink);
+      background: rgba(16, 18, 20, .9);
+      border: 1px solid var(--line);
+      padding: clamp(0.38rem, .9vw, .58rem);
+      font: inherit;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(0.65rem, 1.6vw, 1rem);
+      max-height: min(76vh, 620px);
+    }
+
+    .swatch-card {
+      border: 1px solid var(--line);
+      background: rgba(16, 18, 20, .66);
+      padding: clamp(0.6rem, 1.5vw, 1rem);
+      display: grid;
+      gap: clamp(0.45rem, 1.1vh, .75rem);
+      min-height: 0;
+    }
+
+    .swatch {
+      min-height: clamp(8rem, 31vh, 16rem);
+      border: 1px solid rgba(244, 239, 232, .22);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .24);
+    }
+
+    .swatch-title {
+      font-family: var(--font-mono);
+      font-size: clamp(0.65rem, 1vw, .86rem);
+      color: var(--cyan);
+    }
+
+    .css-code {
+      font-family: var(--font-mono);
+      font-size: clamp(0.56rem, .85vw, .72rem);
+      line-height: 1.45;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    .support-note {
+      font-size: clamp(0.62rem, .95vw, .82rem);
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    @keyframes slow-drift {
+      from { transform: translateY(0) rotate(-4deg); }
+      to { transform: translateY(2vh) rotate(5deg); }
+    }
+
+    /* === RESPONSIVE DESIGN === */
+    @media (max-width: 860px) {
+      .title-layout,
+      .split,
+      .color-demo {
+        grid-template-columns: 1fr;
+      }
+
+      .title-layout {
+        align-content: center;
+      }
+
+      .diagram-card {
+        max-height: min(42vh, 360px);
+      }
+
+      .diagram-card img {
+        max-height: min(34vh, 300px);
+      }
+
+      .bullet-list {
+        max-width: 100%;
+      }
+
+      .timeline {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .swatch {
+        min-height: clamp(5rem, 18vh, 9rem);
+      }
+    }
+
+    @media (max-height: 600px) {
+      .spectral-orbit,
+      .large-number {
+        opacity: .35;
+      }
+
+      .node {
+        min-height: auto;
+      }
+    }
+
+    @media (max-height: 500px) {
+      .timeline,
+      .two-up {
+        gap: clamp(0.35rem, 1vw, .6rem);
+      }
+
+      .caption,
+      .keyboard-hint {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .spectral-orbit {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar" aria-hidden="true"></div>
+  <nav class="nav-dots" aria-label="slide navigation"></nav>
+  <div class="keyboard-hint">← / → · Space · Swipe</div>
+
+  <!-- === SLIDE 01: COVER === -->
+  <section class="slide title-slide" data-index="01">
+    <div class="title-layout">
+      <div class="title-copy">
+        <div class="kicker reveal">Session 1 / Chromaticity and Color Space Conversion</div>
+        <h1 class="reveal">Color Space Field Notes</h1>
+        <p class="reveal">CIE xy 색도도에서 CIE Lab, ICC Profile, 색공간 변환까지. 1회차는 “색의 위치와 의미”를 먼저 잡는다.</p>
+        <div class="chip-row reveal">
+          <span class="chip">CIE xy</span>
+          <span class="chip">XYZ</span>
+          <span class="chip">CIELAB</span>
+          <span class="chip">ICC</span>
+        </div>
+      </div>
+      <figure class="diagram-card reveal">
+        <img src="seminar_chapters/assets/images/1931_chromaticity_diagram.thumb.png" alt="CIE 1931 xy chromaticity diagram">
+        <figcaption class="caption">CIE 1931 xy chromaticity diagram · 색도, 원색, 화이트 포인트, 색역을 읽는 지도</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- === SLIDE 02: SESSION QUESTION === -->
+  <section class="slide" data-index="02">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Opening Question</div>
+        <h2 class="reveal">같은 RGB 값은 항상 같은 색일까?</h2>
+        <p class="reveal">1회차의 목표는 RGB 숫자를 그대로 믿지 않고, 그 숫자가 어떤 표준과 좌표계 안에서 해석되는지 설명할 수 있게 되는 것이다.</p>
+      </div>
+      <div class="panel reveal">
+        <ul class="bullet-list">
+          <li>색값(color value)과 색공간(color space)을 분리한다</li>
+          <li>CIE xy 색도도에서 색역(gamut)을 읽는다</li>
+          <li>XYZ와 Lab이 왜 변환의 공통 언어인지 이해한다</li>
+          <li>ICC Profile과 표준 metadata의 역할을 구분한다</li>
+          <li>마지막에는 실제 색공간 변환 실습으로 연결한다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 03: INTERACTIVE RGB COLOR SPACE COMPARISON === -->
+  <section class="slide" data-index="03">
+    <div class="color-demo">
+      <div class="stack">
+        <div class="kicker reveal">Web Standard Demo</div>
+        <h2 class="reveal">같은 RGB 값, 다른 Color Space</h2>
+        <p class="reveal">CSS의 <span class="mono">color()</span> 함수는 같은 3채널 값을 특정 색공간 안에서 해석할 수 있다. 아래에서 같은 숫자를 여러 웹 표준 색공간으로 비교해 본다.</p>
+        <div class="demo-controls reveal">
+          <div class="rgb-row">
+            <strong>R</strong>
+            <input id="rgbR" type="range" min="0" max="255" value="255" aria-label="red value">
+            <span id="rgbRValue" class="rgb-value">255</span>
+          </div>
+          <div class="rgb-row">
+            <strong>G</strong>
+            <input id="rgbG" type="range" min="0" max="255" value="0" aria-label="green value">
+            <span id="rgbGValue" class="rgb-value">0</span>
+          </div>
+          <div class="rgb-row">
+            <strong>B</strong>
+            <input id="rgbB" type="range" min="0" max="255" value="0" aria-label="blue value">
+            <span id="rgbBValue" class="rgb-value">0</span>
+          </div>
+          <div class="select-row">
+            <label class="select-group">Left color space
+              <select id="spaceA">
+              </select>
+            </label>
+            <label class="select-group">Right color space
+              <select id="spaceB">
+              </select>
+            </label>
+          </div>
+          <p id="gamutNote" class="support-note">rgb()와 #hex는 기본적으로 sRGB다. 선택지는 CSS 표준 색공간이며, 미구현 항목은 자동으로 비활성화된다.</p>
+        </div>
+      </div>
+      <div class="swatch-grid reveal">
+        <div class="swatch-card">
+          <div id="labelA" class="swatch-title">sRGB</div>
+          <div id="swatchA" class="swatch" aria-label="left color swatch"></div>
+          <div id="codeA" class="css-code">color(srgb 1 0 0)</div>
+        </div>
+        <div class="swatch-card">
+          <div id="labelB" class="swatch-title">Display P3</div>
+          <div id="swatchB" class="swatch" aria-label="right color swatch"></div>
+          <div id="codeB" class="css-code">color(display-p3 1 0 0)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 03: SESSION MAP === -->
+  <section class="slide" data-index="04">
+    <div class="slide-content">
+      <div class="stack">
+        <div class="kicker reveal">Session 1 Map</div>
+        <h2 class="reveal">색의 위치를 맞추는 법</h2>
+        <div class="timeline reveal">
+          <div class="node"><strong>01</strong><span>인간의 색 인지와 색상 매칭 실험</span></div>
+          <div class="node"><strong>02</strong><span>CIE XYZ와 xy 색도도의 탄생</span></div>
+          <div class="node"><strong>03</strong><span>Lab, Delta E, 지각적 색차</span></div>
+          <div class="node"><strong>04</strong><span>ICC Profile과 색공간 변환 실습</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 04: HUMAN VISION === -->
+  <section class="slide" data-index="05">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 2</div>
+        <h2 class="reveal">색은 빛의 파장만으로 끝나지 않는다</h2>
+        <p class="reveal">색공간은 물리적 스펙트럼과 인간 관찰자의 반응을 함께 다룬다. 그래서 CIE 표준 관찰자와 색상 매칭 실험이 출발점이 된다.</p>
+      </div>
+      <div class="two-up reveal">
+        <div class="mini-card">
+          <h3>Trichromatic</h3>
+          <p>L, M, S 원추세포의 민감도 차이가 색 지각의 생리적 기반이 된다.</p>
+        </div>
+        <div class="mini-card">
+          <h3>Color Matching</h3>
+          <p>관찰자가 기준 색과 세 기본 빛의 조합이 같아 보인다고 판단한 결과를 표준화한다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 05: XYZ TO XY === -->
+  <section class="slide" data-index="06">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 3</div>
+        <h2 class="reveal">XYZ는 계산의 언어, xy는 색도의 지도</h2>
+        <p class="reveal">CIE XYZ는 장치 독립 좌표이고, CIE xy는 XYZ를 정규화해 밝기 크기를 제거한 색도 좌표다.</p>
+      </div>
+      <div class="panel reveal">
+        <div class="formula">x = X / (X + Y + Z)
+y = Y / (X + Y + Z)
+z = Z / (X + Y + Z)
+
+Y  = 상대 휘도(relative luminance)
+y  = 색도 좌표(chromaticity coordinate)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 06: LAB === -->
+  <section class="slide" data-index="07">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 4</div>
+        <h2 class="reveal">xy에서 Lab으로: 색차를 숫자로 말하기</h2>
+        <p class="reveal">CIE Lab은 XYZ와 기준 흰색을 바탕으로 색을 명도와 반대색 축에 배치해, 사람이 느끼는 색 차이를 더 다루기 쉽게 만든다.</p>
+      </div>
+      <div class="panel reveal">
+        <ul class="bullet-list">
+          <li><span class="mono">L*</span>: 명도(lightness), 기준 흰색에 대한 상대 지각 척도</li>
+          <li><span class="mono">a*</span>: 초록에서 빨강으로 향하는 반대색 축</li>
+          <li><span class="mono">b*</span>: 파랑에서 노랑으로 향하는 반대색 축</li>
+          <li>Delta E는 Lab 좌표 차이를 실무 품질 기준으로 바꿔 준다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 07: READING GAMUTS === -->
+  <section class="slide" data-index="08">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 5</div>
+        <h2 class="reveal">색도도에서 표준을 읽는 법</h2>
+        <p class="reveal">sRGB, Display P3, Rec.2020은 이름이 아니라 원색과 화이트 포인트를 가진 표준이다. CIE xy는 그 관계를 한 장의 지도처럼 보여준다.</p>
+      </div>
+      <figure class="diagram-card reveal">
+        <img src="seminar_chapters/assets/images/CIE1931xy_gamut_comparison_of_sRGB_P3_Rec2020.svg" alt="CIE xy gamut comparison of sRGB, P3, Rec.2020">
+        <figcaption class="caption">sRGB / Display P3 / Rec.2020 gamut comparison</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- === SLIDE 08: COMPONENTS === -->
+  <section class="slide" data-index="09">
+    <div class="slide-content">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 6</div>
+        <h2 class="reveal">Color Space는 규칙의 묶음이다</h2>
+        <div class="two-up reveal">
+          <div class="mini-card"><h3>Primaries</h3><p>RGB 원색이 CIE xy에서 어디에 있는가.</p></div>
+          <div class="mini-card"><h3>White Point</h3><p>무엇을 흰색 기준으로 삼는가.</p></div>
+          <div class="mini-card"><h3>Transfer</h3><p>코드값과 선형광의 관계를 어떻게 해석하는가.</p></div>
+          <div class="mini-card"><h3>Video Metadata</h3><p>matrix coefficients와 color range까지 함께 읽는다.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 09: CONVERSION PIPELINE === -->
+  <section class="slide" data-index="10">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 7</div>
+        <h2 class="reveal">색공간 변환은 숫자 치환이 아니다</h2>
+        <p class="reveal">입력 RGB의 의미를 해석하고, 장치 독립 좌표를 거쳐, 대상 색공간의 규칙으로 다시 표현한다.</p>
+      </div>
+      <div class="panel reveal">
+        <div class="pipeline">
+          <div class="step">Source RGB · encoded values</div>
+          <div class="step">Inverse transfer · linear RGB</div>
+          <div class="step">RGB to XYZ · device independent</div>
+          <div class="step">Chromatic adaptation · if white point changes</div>
+          <div class="step">Target RGB · apply target transfer</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 10: RGB CMYK === -->
+  <section class="slide" data-index="11">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 8</div>
+        <h2 class="reveal">RGB와 CMYK는 같은 문제를 다르게 푼다</h2>
+        <p class="reveal">디스플레이는 빛을 더하고, 인쇄는 잉크가 빛을 흡수한다. CMYK 변환은 RGB의 단순 반대가 아니라 인쇄 조건의 결과다.</p>
+      </div>
+      <div class="two-up reveal">
+        <div class="mini-card"><h3>Additive</h3><p>RGB는 발광 장치에서 빛을 더해 색을 만든다.</p></div>
+        <div class="mini-card"><h3>Subtractive</h3><p>CMYK는 종이와 잉크, 총잉크량, black generation의 제약을 받는다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 11: ICC === -->
+  <section class="slide" data-index="12">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 9-10</div>
+        <h2 class="reveal">ICC Profile은 장치 색을 공통 언어로 연결한다</h2>
+        <p class="reveal">Source profile과 target profile은 PCS(Profile Connection Space)를 통해 연결된다. PCS는 CIE XYZ 또는 CIE Lab 기반이며 D50 기준이 중요하다.</p>
+      </div>
+      <div class="panel reveal">
+        <div class="formula">Source device values
+-> Source ICC Profile
+-> PCS: CIE XYZ or CIE Lab
+-> Target ICC Profile
+-> Target device values</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 12: SUMMARY CHECKLIST === -->
+  <section class="slide" data-index="13">
+    <div class="slide-content">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 11</div>
+        <h2 class="reveal">표준 이름보다 정의 항목을 읽는다</h2>
+        <div class="timeline reveal">
+          <div class="node"><strong>P</strong><span>Primaries: red, green, blue 좌표</span></div>
+          <div class="node"><strong>W</strong><span>White point: D65, D50 같은 흰색 기준</span></div>
+          <div class="node"><strong>T</strong><span>Transfer: 코드값과 빛의 관계</span></div>
+          <div class="node"><strong>M/R</strong><span>Matrix, Range: 영상 신호 해석</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 13: PRACTICE === -->
+  <section class="slide" data-index="14">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Chapter 12</div>
+        <h2 class="reveal">실습은 변환 결과보다 해석 과정을 본다</h2>
+        <p class="reveal">같은 RGB 값, assign vs convert, gamut clipping, RGB to CMYK를 직접 비교하며 색공간 변환의 중간 단계를 확인한다.</p>
+      </div>
+      <div class="panel reveal">
+        <ul class="bullet-list">
+          <li>프로파일을 확인한다</li>
+          <li>색공간을 할당(assign)해 본다</li>
+          <li>색공간을 변환(convert)해 본다</li>
+          <li>변환 전후 RGB 숫자와 외관을 비교한다</li>
+          <li>gamut warning과 soft proofing으로 마무리한다</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- === SLIDE 14: CLOSE === -->
+  <section class="slide" data-index="15">
+    <div class="split">
+      <div class="stack">
+        <div class="kicker reveal">Session 1 Outcome</div>
+        <h2 class="reveal">1회차가 끝나면 답할 수 있는 질문</h2>
+        <p class="reveal">이 RGB 값은 어떤 색공간에서 어떤 색으로 해석되는가? 이 변환은 색의 의미를 유지하는가, 숫자만 바꾸는가?</p>
+      </div>
+      <div class="spectral-orbit reveal" aria-hidden="true"></div>
+    </div>
+    <div class="large-number">01</div>
+  </section>
+
+  <script>
+    /* === SLIDE PRESENTATION CONTROLLER === */
+    class SlidePresentation {
+      constructor() {
+        this.slides = Array.from(document.querySelectorAll(".slide"));
+        this.currentSlide = 0;
+        this.navDotsContainer = document.querySelector(".nav-dots");
+        this.progressBar = document.querySelector(".progress-bar");
+        this.wheelLocked = false;
+        this.touchStartY = 0;
+        this.setupIntersectionObserver();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        this.setupProgressBar();
+        this.setupNavDots();
+        this.setupColorSpaceDemo();
+        this.goToSlide(0, false);
+      }
+
+      setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              this.currentSlide = this.slides.indexOf(entry.target);
+              this.updateProgress();
+              this.updateDots();
+            }
+          });
+        }, { threshold: 0.55 });
+
+        this.slides.forEach((slide) => observer.observe(slide));
+      }
+
+      setupKeyboardNav() {
+        window.addEventListener("keydown", (event) => {
+          if (["INPUT", "SELECT", "TEXTAREA"].includes(event.target.tagName)) return;
+          const nextKeys = ["ArrowDown", "ArrowRight", " ", "PageDown"];
+          const prevKeys = ["ArrowUp", "ArrowLeft", "PageUp"];
+          if (nextKeys.includes(event.key)) {
+            event.preventDefault();
+            this.next();
+          }
+          if (prevKeys.includes(event.key)) {
+            event.preventDefault();
+            this.previous();
+          }
+          if (event.key === "Home") {
+            event.preventDefault();
+            this.goToSlide(0);
+          }
+          if (event.key === "End") {
+            event.preventDefault();
+            this.goToSlide(this.slides.length - 1);
+          }
+        });
+      }
+
+      setupTouchNav() {
+        window.addEventListener("touchstart", (event) => {
+          this.touchStartY = event.changedTouches[0].screenY;
+        }, { passive: true });
+
+        window.addEventListener("touchend", (event) => {
+          const delta = this.touchStartY - event.changedTouches[0].screenY;
+          if (Math.abs(delta) > 40) {
+            if (delta > 0) this.next();
+            else this.previous();
+          }
+        }, { passive: true });
+      }
+
+      setupWheelNav() {
+        window.addEventListener("wheel", (event) => {
+          if (this.wheelLocked) return;
+          if (Math.abs(event.deltaY) < 18) return;
+          this.wheelLocked = true;
+          if (event.deltaY > 0) this.next();
+          else this.previous();
+          setTimeout(() => { this.wheelLocked = false; }, 520);
+        }, { passive: true });
+      }
+
+      setupProgressBar() {
+        this.updateProgress();
+      }
+
+      setupNavDots() {
+        this.navDotsContainer.innerHTML = "";
+        this.slides.forEach((_, index) => {
+          const dot = document.createElement("button");
+          dot.className = "nav-dot";
+          dot.type = "button";
+          dot.setAttribute("aria-label", `Go to slide ${index + 1}`);
+          dot.addEventListener("click", () => this.goToSlide(index));
+          this.navDotsContainer.appendChild(dot);
+        });
+        this.updateDots();
+      }
+
+      setupColorSpaceDemo() {
+        const demo = {
+          r: document.getElementById("rgbR"),
+          g: document.getElementById("rgbG"),
+          b: document.getElementById("rgbB"),
+          rValue: document.getElementById("rgbRValue"),
+          gValue: document.getElementById("rgbGValue"),
+          bValue: document.getElementById("rgbBValue"),
+          spaceA: document.getElementById("spaceA"),
+          spaceB: document.getElementById("spaceB"),
+          swatchA: document.getElementById("swatchA"),
+          swatchB: document.getElementById("swatchB"),
+          labelA: document.getElementById("labelA"),
+          labelB: document.getElementById("labelB"),
+          codeA: document.getElementById("codeA"),
+          codeB: document.getElementById("codeB"),
+          gamutNote: document.getElementById("gamutNote")
+        };
+
+        if (!demo.r) return;
+
+        const spaces = [
+          { value: "srgb", label: "sRGB", group: "RGB / SDR" },
+          { value: "srgb-linear", label: "sRGB Linear", group: "RGB / SDR" },
+          { value: "display-p3", label: "Display P3", group: "RGB / SDR" },
+          { value: "display-p3-linear", label: "Display P3 Linear", group: "RGB / SDR" },
+          { value: "a98-rgb", label: "Adobe RGB (1998)", group: "RGB / SDR" },
+          { value: "prophoto-rgb", label: "ProPhoto RGB", group: "RGB / SDR" },
+          { value: "rec2020", label: "Rec.2020", group: "RGB / SDR" },
+          { value: "rec2100-pq", label: "Rec.2100 PQ", group: "HDR / Draft" },
+          { value: "rec2100-hlg", label: "Rec.2100 HLG", group: "HDR / Draft" },
+          { value: "rec2100-linear", label: "Rec.2100 Linear", group: "HDR / Draft" },
+          { value: "xyz", label: "XYZ (D65)", group: "CIE XYZ" },
+          { value: "xyz-d50", label: "XYZ D50", group: "CIE XYZ" },
+          { value: "xyz-d65", label: "XYZ D65", group: "CIE XYZ" }
+        ].map((space) => ({
+          ...space,
+          supported: CSS.supports("color", `color(${space.value} 1 0 0)`)
+        }));
+
+        const populateSelect = (select, preferredValue) => {
+          select.innerHTML = "";
+          const groups = [...new Set(spaces.map((space) => space.group))];
+          groups.forEach((groupName) => {
+            const group = document.createElement("optgroup");
+            group.label = groupName;
+            spaces.filter((space) => space.group === groupName).forEach((space) => {
+              const option = document.createElement("option");
+              option.value = space.value;
+              option.textContent = space.supported ? space.label : `${space.label} (unsupported)`;
+              option.disabled = !space.supported;
+              group.appendChild(option);
+            });
+            select.appendChild(group);
+          });
+
+          const preferred = spaces.find((space) => space.value === preferredValue && space.supported);
+          const fallback = spaces.find((space) => space.supported);
+          select.value = (preferred || fallback || spaces[0]).value;
+        };
+
+        populateSelect(demo.spaceA, "srgb");
+        populateSelect(demo.spaceB, "display-p3");
+
+        const format = (value) => (Number(value) / 255).toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+        const label = (space) => spaces.find((item) => item.value === space)?.label || space;
+
+        const update = () => {
+          const rgb = [demo.r.value, demo.g.value, demo.b.value];
+          const normalized = rgb.map(format);
+          demo.rValue.textContent = rgb[0];
+          demo.gValue.textContent = rgb[1];
+          demo.bValue.textContent = rgb[2];
+
+          const paint = (side) => {
+            const space = demo[`space${side}`].value;
+            const cssColor = `color(${space} ${normalized.join(" ")})`;
+            demo[`swatch${side}`].style.background = CSS.supports("color", cssColor)
+              ? cssColor
+              : `rgb(${rgb.join(" ")})`;
+            demo[`label${side}`].textContent = label(space);
+            demo[`code${side}`].textContent = cssColor;
+          };
+
+          paint("A");
+          paint("B");
+
+          const gamut = window.matchMedia("(color-gamut: rec2020)").matches
+            ? "rec2020"
+            : window.matchMedia("(color-gamut: p3)").matches
+              ? "display-p3"
+              : "srgb";
+          const unsupportedCount = spaces.filter((space) => !space.supported).length;
+          const supportSummary = unsupportedCount
+            ? ` 이 브라우저에서 ${unsupportedCount}개 항목은 아직 color() 파싱을 지원하지 않는다.`
+            : " 이 브라우저는 현재 목록의 color() 문법을 모두 파싱한다.";
+          demo.gamutNote.textContent = `현재 표시 장치/브라우저의 대략적 gamut: ${label(gamut)}. rgb()와 #hex는 sRGB이고, color(display-p3 ...)처럼 색공간을 명시할 수 있다.${supportSummary}`;
+        };
+
+        [demo.r, demo.g, demo.b, demo.spaceA, demo.spaceB].forEach((element) => {
+          element.addEventListener("input", update);
+          element.addEventListener("change", update);
+        });
+        update();
+      }
+
+      updateProgress() {
+        const progress = this.slides.length <= 1 ? 1 : (this.currentSlide + 1) / this.slides.length;
+        this.progressBar.style.width = `${progress * 100}%`;
+      }
+
+      updateDots() {
+        const dots = this.navDotsContainer.querySelectorAll(".nav-dot");
+        dots.forEach((dot, index) => {
+          dot.classList.toggle("active", index === this.currentSlide);
+        });
+      }
+
+      goToSlide(index, smooth = true) {
+        const target = Math.max(0, Math.min(index, this.slides.length - 1));
+        this.slides[target].scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" });
+        this.currentSlide = target;
+        this.updateProgress();
+        this.updateDots();
+      }
+
+      next() {
+        this.goToSlide(this.currentSlide + 1);
+      }
+
+      previous() {
+        this.goToSlide(this.currentSlide - 1);
+      }
+    }
+
+    new SlidePresentation();
+  </script>
+</body>
+</html>
