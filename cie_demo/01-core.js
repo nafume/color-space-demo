@@ -63,6 +63,15 @@ function syncThemeChrome() {
         themeToggleBtn.title = currentTheme === 'day' ? 'Night 테마로 전환' : 'Day 테마로 전환';
         themeToggleBtn.setAttribute('aria-label', currentTheme === 'day' ? 'Night 테마로 전환' : 'Day 테마로 전환');
     }
+    syncEmbeddedFrameTheme();
+}
+
+function syncEmbeddedFrameTheme() {
+    const broadcastStandardsFrame = document.getElementById('broadcast-standards-frame');
+    broadcastStandardsFrame?.contentWindow?.postMessage({
+        type: 'cie-demo-theme',
+        theme: currentTheme
+    }, '*');
 }
 
 function applyTheme(theme) {
@@ -100,6 +109,7 @@ function updateMenuState() {
 syncThemeChrome();
 updateMenuState();
 toggleMenuBtn.addEventListener('click', () => { isMenuOpen = !isMenuOpen; updateMenuState(); });
+document.getElementById('broadcast-standards-frame')?.addEventListener('load', syncEmbeddedFrameTheme);
 themeToggleBtn?.addEventListener('click', () => {
     applyTheme(currentTheme === 'day' ? 'night' : 'day');
     scheduleResponsiveOverlayCanvases();

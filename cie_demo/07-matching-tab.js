@@ -14,18 +14,25 @@ const matchingUI = {
     rLabel: document.getElementById('matching-r-label'),
     gLabel: document.getElementById('matching-g-label'),
     bLabel: document.getElementById('matching-b-label'),
+    rWavelength: document.getElementById('matching-r-wavelength'),
+    gWavelength: document.getElementById('matching-g-wavelength'),
+    bWavelength: document.getElementById('matching-b-wavelength'),
     rValue: document.getElementById('matching-r-value'),
     gValue: document.getElementById('matching-g-value'),
     bValue: document.getElementById('matching-b-value'),
     allowNegative: document.getElementById('matching-allow-negative'),
     allowNegativeLabel: document.getElementById('matching-allow-negative-label'),
     snap: document.getElementById('matching-snap'),
+    recordCoeffs: document.getElementById('matching-record-coeffs'),
+    resetCoeffs: document.getElementById('matching-reset-coeffs'),
+    savedCoeffs: document.getElementById('matching-saved-coeffs'),
     errorValue: document.getElementById('matching-error-value'),
     hint: document.getElementById('matching-hint'),
     patchCanvas: document.getElementById('matching-patch-canvas'),
     graphCanvas: document.getElementById('matching-graph-canvas'),
     cmfView: document.getElementById('matching-cmf-view'),
     luminousEfficiency: document.getElementById('matching-luminous-efficiency'),
+    showCmf: document.getElementById('matching-show-cmf'),
     rgbPrimaryWavelengths: document.getElementById('matching-rgb-primary-wavelengths')
 };
 
@@ -81,13 +88,29 @@ const matchingState = {
     coeffB: 0,
     cmfView: matchingUI.cmfView.value,
     showLuminousEfficiency: matchingUI.luminousEfficiency.checked,
+    showCmf: matchingUI.showCmf.checked,
     showRgbPrimaryWavelengths: matchingUI.rgbPrimaryWavelengths.checked,
+    savedCoeffSnapshots: [],
     needsRender: true
 };
 
 const cieRgbXYZGroup = new THREE.Group();
 cieRgbXYZGroup.visible = xyzTransformUI.toggle.checked;
 groupXYZ.add(cieRgbXYZGroup);
+
+function formatWavelengthNm(wavelength) {
+    return `${wavelength.toFixed(wavelength % 1 === 0 ? 0 : 1)} nm`;
+}
+
+function formatPrimaryWavelengthNm(wavelength) {
+    return `${wavelength.toFixed(1)} nm`;
+}
+
+function withAlpha(color, alpha) {
+    const parts = color.match(/rgba?\(([^)]+)\)/)?.[1]?.split(',').map(part => part.trim());
+    if (!parts || parts.length < 3) return color;
+    return `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${alpha})`;
+}
 
 function clearThreeGroup(group) {
     while (group.children.length > 0) {
@@ -237,6 +260,12 @@ function applyMatchingModeControls() {
     matchingUI.gLabel.textContent = xyzMode ? 'Y' : 'G';
     matchingUI.bLabel.textContent = xyzMode ? 'Z' : 'B';
 
+    [matchingUI.rWavelength, matchingUI.gWavelength, matchingUI.bWavelength].forEach((label, index) => {
+        if (!label) return;
+        label.textContent = xyzMode ? '' : `(${formatPrimaryWavelengthNm(CIE_RGB_PRIMARIES[index].wavelength)})`;
+        label.style.display = xyzMode ? 'none' : '';
+    });
+
     const sliderColors = xyzMode
         ? [CMF_GRAPH_COLORS.XYZ_CMF.X, CMF_GRAPH_COLORS.XYZ_CMF.Y, CMF_GRAPH_COLORS.XYZ_CMF.Z]
         : [CMF_GRAPH_COLORS.RGB_CMF.R, CMF_GRAPH_COLORS.RGB_CMF.G, CMF_GRAPH_COLORS.RGB_CMF.B];
@@ -315,6 +344,31 @@ function setMatchingCoeffs({ R, G, B }, syncUI = true) {
         matchingUI.b.value = String(matchingState.coeffB);
     }
     matchingState.needsRender = true;
+}
+
+function getCurrentMatchingCoeffs() {
+    return {
+        R: matchingState.coeffR,
+        G: matchingState.coeffG,
+        B: matchingState.coeffB,
+        wavelengthNm: matchingState.wavelengthNm
+    };
+}
+
+function formatMatchingCoeffSnapshots(snapshots) {
+    if (!snapshots || snapshots.length === 0) return '기록값: 없음';
+    const latest = snapshots[snapshots.length - 1];
+    const labels = isXYZMatchingMode() ? ['X', 'Y', 'Z'] : ['R', 'G', 'B'];
+    return `기록 ${snapshots.length}개 · 최근: λ ${Math.round(latest.wavelengthNm)} nm · ${labels[0]} ${latest.R.toFixed(4)} · ${labels[1]} ${latest.G.toFixed(4)} · ${labels[2]} ${latest.B.toFixed(4)}`;
+}
+
+function syncMatchingSavedCoeffControls() {
+    if (matchingUI.savedCoeffs) {
+        matchingUI.savedCoeffs.textContent = formatMatchingCoeffSnapshots(matchingState.savedCoeffSnapshots);
+    }
+    if (matchingUI.resetCoeffs) {
+        matchingUI.resetCoeffs.disabled = matchingState.savedCoeffSnapshots.length === 0;
+    }
 }
 
 function formatSigned(v) {
@@ -970,9 +1024,9 @@ function drawMatchingGraph() {
 
     const padL = Math.max(18, Math.floor(w * 0.04));
     const padR = 10;
-    const primaryMarkerFontSize = Math.max(10, Math.floor(h / 24));
-    const primaryMarkerLabelH = matchingState.showRgbPrimaryWavelengths ? primaryMarkerFontSize + 10 : 0;
-    const spectrumTop = 10 + primaryMarkerLabelH;
+    const topLabelFontSize = Math.max(11, Math.floor(h / 24));
+    const primaryMarkerFontSize = topLabelFontSize;
+    const spectrumTop = 12 + topLabelFontSize + 8;
     const spectrumH = Math.max(12, Math.floor(h * 0.06));
     const spectrumGap = 10;
     const padT = spectrumTop + spectrumH + spectrumGap;
@@ -981,20 +1035,40 @@ function drawMatchingGraph() {
     const plotH = h - padT - padB;
 
     const xToPx = (lambda) => padL + (lambda - MATCHING_LAMBDA_MIN) / (MATCHING_LAMBDA_MAX - MATCHING_LAMBDA_MIN) * plotW;
+    const lambdaNow = matchingState.wavelengthNm;
+    const xNow = xToPx(lambdaNow);
 
     const view = matchingState.cmfView;
     let yMin = Infinity, yMax = -Infinity;
     const ranges = matchingCmf.range;
 
-    const includeXYZ = view === 'xyz' || view === 'both';
-    const includeRGB = view === 'rgb' || view === 'both';
+    const includeXYZ = matchingState.showCmf && (view === 'xyz' || view === 'both');
+    const includeRGB = matchingState.showCmf && (view === 'rgb' || view === 'both');
+    const scaleForRGB = view === 'rgb' || view === 'both';
+    const showRgbCoeffMarkers = view === 'rgb' || view === 'both';
+    const showSavedCoeffMarkers = view === 'rgb' || view === 'both';
     if (includeXYZ) {
         yMin = Math.min(yMin, ranges.xMin, ranges.yMin, ranges.zMin);
         yMax = Math.max(yMax, ranges.xMax, ranges.yMax, ranges.zMax);
     }
-    if (includeRGB) {
+    if (scaleForRGB) {
         yMin = Math.min(yMin, ranges.rMin, ranges.gMin, ranges.bMin);
         yMax = Math.max(yMax, ranges.rMax, ranges.gMax, ranges.bMax);
+    }
+    if (showRgbCoeffMarkers) {
+        [matchingUI.r, matchingUI.g, matchingUI.b].forEach((slider) => {
+            const min = parseFloat(slider.min);
+            const max = parseFloat(slider.max);
+            if (!Number.isFinite(min) || !Number.isFinite(max)) return;
+            yMin = Math.min(yMin, min);
+            yMax = Math.max(yMax, max);
+        });
+        if (showSavedCoeffMarkers) {
+            matchingState.savedCoeffSnapshots.forEach((snapshot) => {
+                yMin = Math.min(yMin, snapshot.R, snapshot.G, snapshot.B);
+                yMax = Math.max(yMax, snapshot.R, snapshot.G, snapshot.B);
+            });
+        }
     }
     if (matchingState.showLuminousEfficiency) {
         yMin = Math.min(yMin, ranges.yMin);
@@ -1041,7 +1115,7 @@ function drawMatchingGraph() {
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             ctx.fillText(
-                `${primary.label} ${primary.wavelength.toFixed(primary.wavelength % 1 === 0 ? 0 : 1)}nm`,
+                `${primary.label} ${formatPrimaryWavelengthNm(primary.wavelength)}`,
                 px,
                 spectrumTop - 5
             );
@@ -1052,6 +1126,31 @@ function drawMatchingGraph() {
     if (matchingState.showRgbPrimaryWavelengths) {
         drawRgbPrimaryWavelengthMarkers();
     }
+
+    function drawSelectedWavelengthLabel() {
+        const label = `${Math.round(lambdaNow)} nm`;
+        ctx.font = `800 ${topLabelFontSize}px 'Pretendard', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const labelW = Math.max(56, Math.floor(topLabelFontSize * 4.7));
+        const labelH = Math.max(22, Math.floor(topLabelFontSize * 1.65));
+        const labelX = Math.max(padL + labelW / 2, Math.min(padL + plotW - labelW / 2, xNow));
+        const labelY = spectrumTop - labelH / 2 - 4;
+        const hueXYZ = getTargetXYZ(lambdaNow);
+        const hue = spectralXYZToDisplayRGBBytes(hueXYZ.X, hueXYZ.Y, hueXYZ.Z);
+        ctx.fillStyle = 'rgba(0,0,0,0.62)';
+        ctx.strokeStyle = `rgb(${hue[0]}, ${hue[1]}, ${hue[2]})`;
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.roundRect(labelX - labelW / 2, labelY - labelH / 2, labelW, labelH, 7);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.fillText(label, labelX, labelY + 0.5);
+        ctx.textAlign = 'start';
+    }
+
+    drawSelectedWavelengthLabel();
 
     // Axes / grid
     ctx.strokeStyle = 'rgba(255,255,255,0.18)';
@@ -1118,8 +1217,6 @@ function drawMatchingGraph() {
         ctx.fillText('V(λ)', xToPx(peakLambda) + 6, yToPx(matchingCmf.y[peakIdx]) - 4);
     }
 
-    const lambdaNow = matchingState.wavelengthNm;
-    const xNow = xToPx(lambdaNow);
     ctx.strokeStyle = 'rgba(255,255,255,0.55)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1131,60 +1228,88 @@ function drawMatchingGraph() {
     const targetXYZ = getTargetXYZ(lambdaNow);
     const current = computeMatchingXYZ();
 
-    function drawMarker(v, color, filled = true, radius = 4) {
+    function drawMarker(v, color, filled = true, radius = 4, xOffset = 0, xBase = xNow) {
         const py = yToPx(v);
         ctx.beginPath();
-        ctx.arc(xNow, py, radius, 0, Math.PI * 2);
+        ctx.arc(xBase + xOffset, py, radius, 0, Math.PI * 2);
         if (filled) {
             ctx.fillStyle = color;
             ctx.fill();
         } else {
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.4;
             ctx.stroke();
         }
+    }
+
+    function drawCoeffMarkers(radius = 4) {
+        const markers = [
+            { value: current.coeff.R, color: CMF_GRAPH_COLORS.RGB_CMF.R },
+            { value: current.coeff.G, color: CMF_GRAPH_COLORS.RGB_CMF.G },
+            { value: current.coeff.B, color: CMF_GRAPH_COLORS.RGB_CMF.B }
+        ];
+        markers.forEach(marker => {
+            drawMarker(marker.value, 'rgba(0,0,0,0.65)', false, radius + 1.8);
+            drawMarker(marker.value, marker.color, false, radius);
+        });
+    }
+
+    function drawSavedCoeffMarkers() {
+        if (!showSavedCoeffMarkers || matchingState.savedCoeffSnapshots.length === 0) return;
+        matchingState.savedCoeffSnapshots.forEach((snapshot, index) => {
+            const savedX = xToPx(snapshot.wavelengthNm);
+            const alpha = Math.max(0.35, Math.min(0.92, 0.52 + (index + 1) / matchingState.savedCoeffSnapshots.length * 0.4));
+            const markers = [
+                { value: snapshot.R, color: CMF_GRAPH_COLORS.RGB_CMF.R },
+                { value: snapshot.G, color: CMF_GRAPH_COLORS.RGB_CMF.G },
+                { value: snapshot.B, color: CMF_GRAPH_COLORS.RGB_CMF.B }
+            ];
+            markers.forEach(marker => {
+                drawMarker(marker.value, 'rgba(0,0,0,0.72)', false, 6.2, 0, savedX);
+                drawMarker(marker.value, withAlpha(marker.color, alpha), true, 4.8, 0, savedX);
+                drawMarker(marker.value, 'rgba(255,255,255,0.9)', false, 4.8, 0, savedX);
+            });
+        });
     }
 
     if (matchingState.showLuminousEfficiency) {
         drawMarker(targetXYZ.Y, 'rgba(255,212,90,0.95)', false, 6);
     }
 
+    drawSavedCoeffMarkers();
+
     if (view === 'rgb') {
-        drawMarker(idealRGB.R, CMF_GRAPH_COLORS.RGB_CMF.R, true);
-        drawMarker(idealRGB.G, CMF_GRAPH_COLORS.RGB_CMF.G, true);
-        drawMarker(idealRGB.B, CMF_GRAPH_COLORS.RGB_CMF.B, true);
-        drawMarker(current.coeff.R, 'rgba(255,255,255,0.9)', false);
-        drawMarker(current.coeff.G, 'rgba(255,255,255,0.9)', false);
-        drawMarker(current.coeff.B, 'rgba(255,255,255,0.9)', false);
-    } else if (view === 'xyz') {
+        if (includeRGB) {
+            drawMarker(idealRGB.R, CMF_GRAPH_COLORS.RGB_CMF.R, true);
+            drawMarker(idealRGB.G, CMF_GRAPH_COLORS.RGB_CMF.G, true);
+            drawMarker(idealRGB.B, CMF_GRAPH_COLORS.RGB_CMF.B, true);
+        }
+        drawCoeffMarkers(4);
+    } else if (view === 'xyz' && includeXYZ) {
         drawMarker(targetXYZ.X, CMF_GRAPH_COLORS.XYZ_CMF.X, true);
         drawMarker(targetXYZ.Y, CMF_GRAPH_COLORS.XYZ_CMF.Y, true);
         drawMarker(targetXYZ.Z, CMF_GRAPH_COLORS.XYZ_CMF.Z, true);
         drawMarker(current.reconstructed.X, 'rgba(255,255,255,0.9)', false);
         drawMarker(current.reconstructed.Y, 'rgba(255,255,255,0.9)', false);
         drawMarker(current.reconstructed.Z, 'rgba(255,255,255,0.9)', false);
-    } else {
-        // both
-        // XYZ: target vs current(reconstructed)
-        drawMarker(targetXYZ.X, CMF_GRAPH_COLORS.XYZ_CMF.X, true, 5);
-        drawMarker(targetXYZ.Y, CMF_GRAPH_COLORS.XYZ_CMF.Y, true, 5);
-        drawMarker(targetXYZ.Z, CMF_GRAPH_COLORS.XYZ_CMF.Z, true, 5);
-        drawMarker(current.reconstructed.X, 'rgba(255,255,255,0.9)', false, 5);
-        drawMarker(current.reconstructed.Y, 'rgba(255,255,255,0.9)', false, 5);
-        drawMarker(current.reconstructed.Z, 'rgba(255,255,255,0.9)', false, 5);
+    } else if (view === 'both') {
+        if (includeXYZ) {
+            drawMarker(targetXYZ.X, CMF_GRAPH_COLORS.XYZ_CMF.X, true, 5);
+            drawMarker(targetXYZ.Y, CMF_GRAPH_COLORS.XYZ_CMF.Y, true, 5);
+            drawMarker(targetXYZ.Z, CMF_GRAPH_COLORS.XYZ_CMF.Z, true, 5);
+            drawMarker(current.reconstructed.X, 'rgba(255,255,255,0.9)', false, 5);
+            drawMarker(current.reconstructed.Y, 'rgba(255,255,255,0.9)', false, 5);
+            drawMarker(current.reconstructed.Z, 'rgba(255,255,255,0.9)', false, 5);
+        }
 
-        // RGB: ideal vs current(coeff)
-        drawMarker(idealRGB.R, CMF_GRAPH_COLORS.RGB_CMF.R, true, 3);
-        drawMarker(idealRGB.G, CMF_GRAPH_COLORS.RGB_CMF.G, true, 3);
-        drawMarker(idealRGB.B, CMF_GRAPH_COLORS.RGB_CMF.B, true, 3);
-        drawMarker(current.coeff.R, 'rgba(255,255,255,0.9)', false, 3);
-        drawMarker(current.coeff.G, 'rgba(255,255,255,0.9)', false, 3);
-        drawMarker(current.coeff.B, 'rgba(255,255,255,0.9)', false, 3);
+        if (includeRGB) {
+            drawMarker(idealRGB.R, CMF_GRAPH_COLORS.RGB_CMF.R, true, 3);
+            drawMarker(idealRGB.G, CMF_GRAPH_COLORS.RGB_CMF.G, true, 3);
+            drawMarker(idealRGB.B, CMF_GRAPH_COLORS.RGB_CMF.B, true, 3);
+        }
+        drawCoeffMarkers(3.2);
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`${Math.round(lambdaNow)} nm`, xNow + 6, padT + 4);
 }
 
 function getMatchingGraphLayout(canvas) {
@@ -1193,8 +1318,7 @@ function getMatchingGraphLayout(canvas) {
     const padL = Math.max(18, Math.floor(w * 0.04));
     const padR = 10;
     const primaryMarkerFontSize = Math.max(10, Math.floor(h / 24));
-    const primaryMarkerLabelH = matchingState.showRgbPrimaryWavelengths ? primaryMarkerFontSize + 10 : 0;
-    const spectrumTop = 10 + primaryMarkerLabelH;
+    const spectrumTop = 12 + primaryMarkerFontSize + 8;
     const spectrumH = Math.max(12, Math.floor(h * 0.06));
     const spectrumGap = 10;
     const padT = spectrumTop + spectrumH + spectrumGap;
@@ -1230,6 +1354,7 @@ function syncMatchingUIReadouts() {
     matchingUI.rValue.textContent = matchingState.coeffR.toFixed(4);
     matchingUI.gValue.textContent = matchingState.coeffG.toFixed(4);
     matchingUI.bValue.textContent = matchingState.coeffB.toFixed(4);
+    syncMatchingSavedCoeffControls();
 }
 
 function updateSelectedWavelengthPreview(ideal) {
@@ -1266,7 +1391,7 @@ function renderMatching() {
     const idealNeg = (ideal.R < 0) || (ideal.G < 0) || (ideal.B < 0);
     updateSelectedWavelengthPreview(ideal);
     const primarySummary = CIE_RGB_PRIMARIES
-        .map(primary => `${primary.label}≈${primary.wavelength.toFixed(primary.wavelength % 1 === 0 ? 0 : 1)}nm`)
+        .map(primary => `${primary.label}≈${formatPrimaryWavelengthNm(primary.wavelength)}`)
         .join(', ');
     const hintLines = [];
     if (isXYZMatchingMode()) {

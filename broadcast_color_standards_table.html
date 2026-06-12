@@ -48,6 +48,91 @@
       background-size: 28px 28px, 28px 28px, auto, auto, auto;
     }
 
+    body.theme-day {
+      --bg: #e7e4dc;
+      --surface: #fffaf2;
+      --surface-2: #efe8dc;
+      --line: rgba(36, 32, 28, .14);
+      --line-strong: rgba(36, 32, 28, .24);
+      --ink: #171717;
+      --muted: #57514a;
+      --quiet: #7c7469;
+      --cyan: #087ea4;
+      --green: #147d42;
+      --amber: #9b6400;
+      --red: #b8372f;
+      --violet: #6758d8;
+      --blue: #1e67c7;
+      --shadow: 0 18px 48px rgba(76, 67, 54, .14);
+    }
+
+    body.embedded {
+      min-height: 100vh;
+      background: transparent;
+    }
+
+    body.embedded .page {
+      width: 100%;
+      padding: 0 0 10px;
+    }
+
+    body.embedded header {
+      grid-template-columns: minmax(0, 1.3fr) minmax(260px, .55fr);
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    body.embedded h1 {
+      font-size: clamp(1.8rem, 3.5vw, 3.6rem);
+    }
+
+    body.embedded .subtitle {
+      margin-top: 12px;
+      font-size: .95rem;
+    }
+
+    body.embedded .chips,
+    body.embedded .note-grid {
+      margin: 18px 0;
+    }
+
+    body.embedded section {
+      margin-top: 26px;
+    }
+
+    body.embedded .table-wrap {
+      border-radius: 14px;
+      box-shadow: none;
+    }
+
+    body.theme-day .version-card,
+    body.theme-day .note,
+    body.theme-day .chip,
+    body.theme-day .source-list li {
+      background: rgba(255, 250, 242, .82);
+    }
+
+    body.theme-day .table-wrap {
+      background: rgba(255, 250, 242, .68);
+    }
+
+    body.theme-day th {
+      background: #e8dfd1;
+      color: #171717;
+    }
+
+    body.theme-day tbody tr:nth-child(even) td {
+      background: rgba(0, 0, 0, .025);
+    }
+
+    body.theme-day .tag {
+      background: rgba(0, 0, 0, .035);
+    }
+
+    body.theme-day .formula {
+      color: #25302f;
+    }
+
     a {
       color: inherit;
     }
@@ -400,6 +485,11 @@
       .page {
         width: min(100vw - 28px, 1680px);
         padding-top: 28px;
+      }
+
+      body.embedded .page {
+        width: 100%;
+        padding-top: 0;
       }
 
       header,
@@ -1474,5 +1564,21 @@
       </ul>
     </section>
   </main>
+  <script>
+    (() => {
+      const applyTheme = (theme) => {
+        document.body.classList.toggle('theme-day', theme === 'day');
+      };
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('embed') === '1') {
+        document.body.classList.add('embedded');
+      }
+      applyTheme(params.get('theme'));
+      window.addEventListener('message', (event) => {
+        if (event.data?.type !== 'cie-demo-theme') return;
+        applyTheme(event.data.theme);
+      });
+    })();
+  </script>
 </body>
 </html>

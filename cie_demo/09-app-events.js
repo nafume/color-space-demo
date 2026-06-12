@@ -124,20 +124,22 @@ function setActiveTab(target, options = {}) {
 
     const show = (id, visible) => {
         const el = document.getElementById(id);
-        if (el) el.style.display = visible ? (['start-main', 'matching-main', 'rgb-compare-main', 'additive-subtractive-main', 'transfer-main', 'camera-log-main'].includes(id) ? 'flex' : 'block') : 'none';
+        if (el) el.style.display = visible ? (['start-main', 'matching-main', 'rgb-compare-main', 'additive-subtractive-main', 'transfer-main', 'camera-log-main', 'broadcast-standards-main'].includes(id) ? 'flex' : 'block') : 'none';
     };
 
-    controls.enabled = !['matching', 'rgb-compare', 'additive-subtractive', 'transfer', 'camera-log'].includes(target);
+    controls.enabled = !['matching', 'rgb-compare', 'additive-subtractive', 'transfer', 'camera-log', 'broadcast-standards'].includes(target);
     syncXyyMouseMode();
     show('start-main', false);
     show('rgb-compare-main', false);
     show('additive-subtractive-main', false);
     show('transfer-main', false);
     show('camera-log-main', false);
+    show('broadcast-standards-main', false);
     show('matching-main', false);
     show('controls-additive-subtractive', false);
     show('controls-transfer', false);
     show('controls-camera-log', false);
+    show('controls-broadcast-standards', false);
     show('legend-transfer', false);
     show('legend-camera-log', false);
 
@@ -153,6 +155,7 @@ function setActiveTab(target, options = {}) {
         show('controls-rgb-compare', false);
         show('controls-matching', false);
         show('controls-camera-log', false);
+        show('controls-broadcast-standards', false);
         show('controls-xyz', true);
         show('controls-lab', false);
         show('controls-ictcp', false);
@@ -175,6 +178,7 @@ function setActiveTab(target, options = {}) {
         show('controls-rgb-compare', false);
         show('controls-matching', false);
         show('controls-camera-log', false);
+        show('controls-broadcast-standards', false);
         show('controls-xyz', false);
         show('controls-lab', true);
         show('controls-ictcp', false);
@@ -196,6 +200,7 @@ function setActiveTab(target, options = {}) {
         show('controls-rgb-compare', false);
         show('controls-matching', false);
         show('controls-camera-log', false);
+        show('controls-broadcast-standards', false);
         show('controls-xyz', false);
         show('controls-lab', false);
         show('controls-ictcp', true);
@@ -217,6 +222,7 @@ function setActiveTab(target, options = {}) {
         show('controls-rgb-compare', false);
         show('controls-matching', false);
         show('controls-camera-log', false);
+        show('controls-broadcast-standards', false);
         show('controls-xyz', false);
         show('controls-lab', false);
         show('controls-ictcp', false);
@@ -239,6 +245,7 @@ function setActiveTab(target, options = {}) {
         show('controls-additive-subtractive', true);
         show('controls-transfer', false);
         show('controls-camera-log', false);
+        show('controls-broadcast-standards', false);
         show('controls-matching', false);
         show('controls-xyz', false);
         show('controls-lab', false);
@@ -262,6 +269,7 @@ function setActiveTab(target, options = {}) {
         show('rgb-compare-main', true);
         show('controls-rgb-compare', true);
         show('controls-camera-log', false);
+        show('controls-broadcast-standards', false);
         show('controls-matching', false);
         show('controls-xyz', false);
         show('controls-lab', false);
@@ -285,6 +293,7 @@ function setActiveTab(target, options = {}) {
         show('controls-rgb-compare', false);
         show('controls-transfer', true);
         show('controls-camera-log', false);
+        show('controls-broadcast-standards', false);
         show('controls-matching', false);
         show('controls-xyz', false);
         show('controls-lab', false);
@@ -309,6 +318,7 @@ function setActiveTab(target, options = {}) {
         show('controls-rgb-compare', false);
         show('controls-transfer', false);
         show('controls-camera-log', true);
+        show('controls-broadcast-standards', false);
         show('controls-matching', false);
         show('controls-xyz', false);
         show('controls-lab', false);
@@ -326,6 +336,32 @@ function setActiveTab(target, options = {}) {
         return;
     }
 
+    if (target === 'broadcast-standards') {
+        groupXYZ.visible = false; groupLab.visible = false; groupICtCp.visible = false; groupxyY.visible = false;
+        show('main-overlay', true);
+        show('broadcast-standards-main', true);
+        show('controls-rgb-compare', false);
+        show('controls-additive-subtractive', false);
+        show('controls-transfer', false);
+        show('controls-camera-log', false);
+        show('controls-broadcast-standards', true);
+        show('controls-matching', false);
+        show('controls-xyz', false);
+        show('controls-lab', false);
+        show('controls-ictcp', false);
+        show('controls-xyy', false);
+        show('legend-rgb-compare', false);
+        show('legend-transfer', false);
+        show('legend-camera-log', false);
+        show('legend-matching', false);
+        show('legend-xyz', false);
+        show('legend-lab', false);
+        show('legend-ictcp', false);
+        show('legend-xyy', false);
+        if (typeof syncEmbeddedFrameTheme === 'function') syncEmbeddedFrameTheme();
+        return;
+    }
+
     // matching
     groupXYZ.visible = false; groupLab.visible = false; groupICtCp.visible = false; groupxyY.visible = false;
     show('main-overlay', true);
@@ -333,6 +369,7 @@ function setActiveTab(target, options = {}) {
     show('controls-rgb-compare', false);
     show('controls-additive-subtractive', false);
     show('controls-camera-log', false);
+    show('controls-broadcast-standards', false);
     show('controls-matching', true);
     show('controls-xyz', false);
     show('controls-lab', false);
@@ -363,11 +400,13 @@ function showStartCover() {
     show('additive-subtractive-main', false);
     show('transfer-main', false);
     show('camera-log-main', false);
+    show('broadcast-standards-main', false);
     show('matching-main', false);
     show('controls-rgb-compare', false);
     show('controls-additive-subtractive', false);
     show('controls-transfer', false);
     show('controls-camera-log', false);
+    show('controls-broadcast-standards', false);
     show('controls-matching', false);
     show('controls-xyz', false);
     show('controls-lab', false);
@@ -479,6 +518,12 @@ matchingUI.luminousEfficiency.addEventListener('change', (e) => {
     renderMatching();
 });
 
+matchingUI.showCmf.addEventListener('change', (e) => {
+    matchingState.showCmf = e.target.checked;
+    matchingState.needsRender = true;
+    renderMatching();
+});
+
 matchingUI.rgbPrimaryWavelengths.addEventListener('change', (e) => {
     matchingState.showRgbPrimaryWavelengths = e.target.checked;
     matchingState.needsRender = true;
@@ -499,6 +544,18 @@ matchingUI.allowNegative.addEventListener('change', (e) => {
 
 matchingUI.snap.addEventListener('click', () => {
     setMatchingCoeffs(getIdealMatchingCoeffs(matchingState.wavelengthNm), true);
+    renderMatching();
+});
+
+matchingUI.recordCoeffs.addEventListener('click', () => {
+    matchingState.savedCoeffSnapshots.push(getCurrentMatchingCoeffs());
+    matchingState.needsRender = true;
+    renderMatching();
+});
+
+matchingUI.resetCoeffs.addEventListener('click', () => {
+    matchingState.savedCoeffSnapshots = [];
+    matchingState.needsRender = true;
     renderMatching();
 });
 

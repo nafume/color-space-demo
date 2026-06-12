@@ -32,6 +32,7 @@
         <button class="tab" data-target="camera-log">Camera Log</button>
         <button class="tab" data-target="lab">CIELAB</button>
         <button class="tab" data-target="ictcp">ICtCp</button>
+        <button class="tab" data-target="broadcast-standards">Broadcast Standards</button>
     </div>
 
     <button id="theme-toggle-btn" type="button" title="Day / Night 테마 전환" aria-label="Day / Night 테마 전환">
@@ -182,6 +183,7 @@
                         </select>
                     </div>
                     <label><input type="checkbox" id="matching-luminous-efficiency"> 광효율 함수 V(λ) 표시</label>
+                    <label><input type="checkbox" id="matching-show-cmf"> CMF 곡선 표시</label>
                     <label><input type="checkbox" id="matching-rgb-primary-wavelengths"> RGB 원색 파장 위치 표시</label>
                 </div>
 
@@ -197,24 +199,41 @@
 
                 <div class="control-group">
                     <div class="matching-row">
-                        <span class="matching-label" id="matching-r-label">R</span>
+                        <span class="matching-label matching-primary-label">
+                            <span id="matching-r-label">R</span>
+                            <span class="matching-primary-wavelength" id="matching-r-wavelength">(700.0 nm)</span>
+                        </span>
                         <span class="matching-value" id="matching-r-value">0.0000</span>
                     </div>
                     <input type="range" id="matching-r" step="0.0005">
                 </div>
                 <div class="control-group">
                     <div class="matching-row">
-                        <span class="matching-label" id="matching-g-label">G</span>
+                        <span class="matching-label matching-primary-label">
+                            <span id="matching-g-label">G</span>
+                            <span class="matching-primary-wavelength" id="matching-g-wavelength">(546.1 nm)</span>
+                        </span>
                         <span class="matching-value" id="matching-g-value">0.0000</span>
                     </div>
                     <input type="range" id="matching-g" step="0.0005">
                 </div>
                 <div class="control-group">
                     <div class="matching-row">
-                        <span class="matching-label" id="matching-b-label">B</span>
+                        <span class="matching-label matching-primary-label">
+                            <span id="matching-b-label">B</span>
+                            <span class="matching-primary-wavelength" id="matching-b-wavelength">(435.8 nm)</span>
+                        </span>
                         <span class="matching-value" id="matching-b-value">0.0000</span>
                     </div>
                     <input type="range" id="matching-b" step="0.0005">
+                </div>
+
+                <div class="control-group">
+                    <div class="matching-inline matching-coeff-memory">
+                        <button id="matching-record-coeffs" class="btn-secondary" type="button">현재값 기록</button>
+                        <button id="matching-reset-coeffs" class="btn-secondary" type="button" disabled>기록 리셋</button>
+                    </div>
+                    <div class="matching-hint" id="matching-saved-coeffs">기록값: 없음</div>
                 </div>
 
                 <div class="control-group matching-inline">
@@ -394,6 +413,16 @@
                 <div class="control-group">
                     <div class="matching-hint">BT.2100 ICtCp: Rec.2020 RGB → LMS → PQ → I, Ct, Cp</div>
                     <div class="matching-hint">표시 좌표: I는 세로축, Ct/Cp는 색차 축으로 중심(0.5) 기준 정규화</div>
+                </div>
+            </div>
+
+            <!-- Broadcast Standards 컨트롤 -->
+            <div id="controls-broadcast-standards">
+                <div class="control-group">
+                    <div class="matching-section-title">Broadcast Color Standards</div>
+                    <div class="matching-hint">
+                        방송/영상 표준의 primaries, transfer, matrix, HDR metadata를 표로 비교합니다.
+                    </div>
                 </div>
             </div>
 
@@ -1023,6 +1052,17 @@
                     <div class="matching-section-title">Code Value</div>
                     <p>각 로그 곡선은 같은 노출값을 서로 다른 code value 위치에 배치합니다. black, middle gray, highlight headroom의 위치를 비교하세요.</p>
                 </div>
+            </div>
+        </div>
+        <div id="broadcast-standards-main">
+            <div class="matching-main-header">
+                <div class="matching-main-title">Broadcast Color Standards</div>
+                <div class="matching-main-meta">BT.601 · BT.709 · BT.2020 · PQ · HLG · BT.2100</div>
+            </div>
+            <div class="matching-main-panel broadcast-standards-frame-panel">
+                <iframe id="broadcast-standards-frame" class="broadcast-standards-frame"
+                    src="broadcast_color_standards_table.html?embed=1"
+                    title="Broadcast color standards table"></iframe>
             </div>
         </div>
         <div id="matching-main">

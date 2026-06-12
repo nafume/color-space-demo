@@ -254,7 +254,8 @@ body.theme-day .start-gamut-triangle {
 #rgb-compare-main,
 #additive-subtractive-main,
 #transfer-main,
-#camera-log-main {
+#camera-log-main,
+#broadcast-standards-main {
     position: absolute;
     inset: 72px 20px 20px 8px;
     display: flex;
@@ -266,7 +267,8 @@ body.theme-day .start-gamut-triangle {
 #rgb-compare-main,
 #additive-subtractive-main,
 #transfer-main,
-#camera-log-main {
+#camera-log-main,
+#broadcast-standards-main {
     overflow-y: auto;
     padding-right: 4px;
     overscroll-behavior: contain;
@@ -282,7 +284,8 @@ body.theme-day .start-gamut-triangle {
 #transfer-main > .transfer-info-grid,
 #camera-log-main > .matching-main-header,
 #camera-log-main > .matching-main-panel,
-#camera-log-main > .transfer-info-grid {
+#camera-log-main > .transfer-info-grid,
+#broadcast-standards-main > .matching-main-header {
     flex: 0 0 auto;
 }
 
@@ -291,6 +294,23 @@ body.theme-day .start-gamut-triangle {
 #transfer-main > .matching-main-panel,
 #camera-log-main > .matching-main-panel {
     min-height: auto;
+}
+
+.broadcast-standards-frame-panel {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.broadcast-standards-frame {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 560px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
 }
 
 .addsub-canvas-panel {
@@ -1280,6 +1300,28 @@ button.btn-secondary:active {
     font-size: 0.85rem;
 }
 
+.matching-primary-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    line-height: 1.1;
+}
+
+.matching-primary-wavelength {
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+
+.matching-coeff-memory {
+    align-items: stretch;
+}
+
+.matching-coeff-memory button {
+    flex: 1;
+}
+
 .matching-value {
     color: var(--text-main);
     font-variant-numeric: tabular-nums;
@@ -1354,6 +1396,7 @@ button.btn-secondary:active {
 #controls-lab,
 #controls-transfer,
 #controls-camera-log,
+#controls-broadcast-standards,
 #legend-xyz,
 #legend-lab,
 #legend-transfer,
