@@ -13,6 +13,11 @@
 </head>
 
 <body class="app-start-screen index-entry">
+    <script>
+        if (new URLSearchParams(window.location.search).has('index')) {
+            document.body.classList.add('index-tab-entry');
+        }
+    </script>
 
     <button id="toggle-menu-btn" title="메뉴 숨기기" aria-label="메뉴 숨기기">
         <span id="toggle-menu-text">메뉴 숨기기</span>

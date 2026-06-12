@@ -85,7 +85,7 @@ body.app-start-screen .instruction {
     pointer-events: none;
 }
 
-body.index-entry .tabs {
+body.index-entry.index-tab-entry .tabs {
     display: none;
 }
 
