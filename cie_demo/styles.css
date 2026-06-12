@@ -85,6 +85,10 @@ body.app-start-screen .instruction {
     pointer-events: none;
 }
 
+body.index-entry .tabs {
+    display: none;
+}
+
 #start-main {
     position: absolute;
     inset: 0;
